@@ -1,57 +1,82 @@
-import discord
-from discord.ext import commands
+import customtkinter as ctk
+import Styles
+import datetime
+import sqlite3
+import Side_Functions
+import Web_Scrapping
+import os
+import json
+import sys
 
-intents = discord.Intents.default()
-intents.message_content = True  # Enables reading messages
+#This will be the Main Interface (start up interface you can say also)
+#I will Start with the basics
+#Zero basic Set up
+Con = sqlite3.connect("Users_Data.db")
+Cur = Con.cursor()
+with open("GYM&User_DATA.sql", "r") as Table_Query:
+    Cur.executescript(Table_Query.read())
+#First: Sign up Interface/Class
 
-bot = commands.Bot(command_prefix='/', intents=intents)
+# // Main Window...
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+class Main_Window(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.geometry("800x600")
+        self.title("BLACK GYM!!")
+        self.configure(fg_color="#2B2B2B")
+        self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
+        
+        self.Create_First_InterFace()
+        
+        self.Show_Page(self.First_Interface_Frame)
+    def Create_First_InterFace(self):
+        Title_Label = ctk.CTkLabel(self.First_Interface_Frame, 
+                                text="Welcome to THE BLACK GYM!!", 
+                                **Styles.label_styles["title"]
+        )
 
-@bot.event
-async def on_ready():
-    print(f'✅ Logged in as {bot.user}')
+        Title_Label.place(relx=0.50, rely=0.12, anchor="center")
 
-@bot.command()
-async def hello(ctx):
-    await ctx.send(f'Hello {ctx.author.name}! 👋')
-import discord
-from discord.ext import commands
+        Sign_up_Btn = ctk.CTkButton(self.First_Interface_Frame, 
+                                text="Sign Up", 
+                                **Styles.button_styles["Big"],
+        )
+        Sign_up_Btn.place(relx=0.5, rely=0.34, relwidth=0.75 ,relheight=0.12,anchor="center")
+        Sign_up_Btn.bind("<Enter>", lambda e: Sign_up_Btn.configure(cursor="hand2"))
 
-intents = discord.Intents.default()
-intents.message_content = True
-intents.members = True  # Required to kick members
+        Sign_in_Btn = ctk.CTkButton(self.First_Interface_Frame, 
+                                text="Sign In", 
+                                **Styles.button_styles["Big"],
+        )
+        Sign_in_Btn.place(relx=0.5, rely=0.54, relwidth=0.75 ,relheight=0.12 ,anchor="center")
+        Sign_in_Btn.bind("<Enter>", lambda e: Sign_in_Btn.configure(cursor="hand2"))
 
-bot = commands.Bot(command_prefix='!', intents=intents)
+        Exit_Btn = ctk.CTkButton(self.First_Interface_Frame, 
+                                text="Exit", 
+                                fg_color= "#4A90E2",
+                                bg_color= "#2B2B2B",
+                                hover_color= "#ff3f3f",
+                                text_color= "white",
+                                corner_radius= 14,
+                                font= ("Lato", 40, "bold"),
+                                border_width= 0,
+                                command= lambda: self.Show_Page(self.Test_Frame)
+        )
+        Exit_Btn.place(relx=0.5, rely=0.74, relwidth=0.75 ,relheight=0.12 ,anchor="center")
+        Exit_Btn.bind("<Enter>", lambda e: Exit_Btn.configure(cursor="hand2"))
 
-@bot.event
-async def on_ready():
-    print(f'✅ Logged in as {bot.user}')
-
-@bot.command()
-async def hello(ctx):
-    await ctx.send(f'Hello {ctx.author.name}! 👋')
-
-@bot.command()
-@commands.has_permissions(kick_members=True)
-async def kick(ctx, member: discord.Member, *, reason="No reason provided"):
-    try:
-        await member.kick(reason=reason)
-        await ctx.send(f'👢 {member.mention} has been kicked. Reason: {reason}')
-    except Exception as e:
-        await ctx.send(f"⚠️ Failed to kick {member.mention}. Error: {e}")
-
-@kick.error
-async def kick_error(ctx, error):
-    if isinstance(error, commands.MissingPermissions):
-        await ctx.send("🚫 You don't have permission to use this command.")
-    elif isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send("❗ Please mention a user to kick. Example: `!kick @user`")
-    else:
-        await ctx.send(f"❌ Error: {error}")
-
-bot.run('MTM3NTUwMzcxOTQ5NTYzMDk2OQ.G6iKve.uvHs1uEdPDn7doBx_d4yGgEkBLxTzjdp6xTpJA')
-
-
-
-
-
-
+        Feedback_Btn = ctk.CTkButton(self.First_Interface_Frame, 
+                                text="Feedback", 
+                                **Styles.button_styles["Small"]
+        )
+        Feedback_Btn.place(relx=0.5, rely=0.9, relwidth=0.3 ,relheight=0.12 ,anchor="center")
+        Feedback_Btn.bind("<Enter>", lambda e: Feedback_Btn.configure(cursor="hand2"))
+    def Show_Page(self, Page):
+        for widget in self.winfo_children():
+            if isinstance(widget, ctk.CTkFrame):
+                widget.place_forget()
+        Page.place(x=0, y=0)
+Main = Main_Window()
+Main.mainloop()
