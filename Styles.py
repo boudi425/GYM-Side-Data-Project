@@ -33,13 +33,23 @@ button_styles = {
 
 # Label styles
 label_styles = {
-    "title": {
+    "title1": {
         "text_color": "#c4c364",
+        "corner_radius": 3,
+        "font": ("Lato", 50, "bold")
+    },
+    "title2": {
+        "text_color": "#e4e4e4",
         "corner_radius": 3,
         "font": ("Lato", 50, "bold")
     },
     "subtitle": {
         "text_color": "#c4c364",
+        "corner_radius": 3,
+        "font": ("Lato", 14, "bold")
+    },
+    "subtitle2": {
+        "text_color": "#e4e152",
         "corner_radius": 3,
         "font": ("Lato", 14, "bold")
     }
