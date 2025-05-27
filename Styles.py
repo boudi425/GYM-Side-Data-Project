@@ -36,12 +36,12 @@ label_styles = {
     "title1": {
         "text_color": "#c4c364",
         "corner_radius": 3,
-        "font": ("Lato", 50, "bold")
+        "font": ("Lato", 48, "bold")
     },
     "title2": {
         "text_color": "#e4e4e4",
         "corner_radius": 3,
-        "font": ("Lato", 48, "bold")
+        "font": ("Lato", 44, "bold")
     },
     "subtitle": {
         "text_color": "#c4c364",

@@ -22,7 +22,7 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 ctk.set_window_scaling(1)
 ctk.set_widget_scaling(1)
-
+Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
 class Sign_Up(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -63,6 +63,10 @@ class Sign_Up(ctk.CTkFrame):
         valid = True
         
         if not self.check_empty(self.username, self.username_warning, "⚠ Username required"):
+            valid = False
+        elif self.username.get().capitalize() in Names:
+            self.username_warning.configure(text="⚠ Username is already Taken")
+            self.username_warning.update()
             valid = False
         if not self.check_empty(self.password, self.password_warning, "⚠ Password required"):
             valid = False
@@ -105,14 +109,15 @@ class Sign_Up(ctk.CTkFrame):
                                     height=58,
                                     **Styles.label_styles["title2"])
         User_Name_Label.place(x=405, y=72)
-        self.username = ctk.CTkEntry(self,
+        userName = ctk.CTkEntry(self,
+                                    textvariable=self.username,
                                     width=346,
                                     height=50,
                                     **Styles.entry_styles["default"])
-        self.username.place(x=405, y=134)
+        userName.place(x=405, y=134)
         
         self.username_warning = ctk.CTkLabel(self, text="", width=140, height=24, **Styles.label_styles["error_title"])
-        self.username_warning.place(x=405, rely=198)
+        self.username_warning.place(x=405, y=198)
 #-------------------------------------------------------------------------------------------------------
         Email_Label = ctk.CTkLabel(self,
                                     text="Email:",
@@ -120,11 +125,12 @@ class Sign_Up(ctk.CTkFrame):
                                     height=58,
                                     **Styles.label_styles["title2"])
         Email_Label.place(x=11, y=72)
-        self.email = ctk.CTkEntry(self,
+        email = ctk.CTkEntry(self,
+                                textvariable= self.email,
                                 width=346,
                                 height=50,
                                 **Styles.entry_styles["default"])
-        self.email.place(x=11, y=135)
+        email.place(x=11, y=135)
         
         self.email_warning = ctk.CTkLabel(self, text="", width=140, height=24, **Styles.label_styles["error_title"])
         self.email_warning.place(x=20, y=198)
@@ -142,8 +148,27 @@ class Sign_Up(ctk.CTkFrame):
                                     height=41,
                                     **Styles.entry_styles["default"])
         password_Entry.place(x=11, y=275)
+        """"fg_color": "#F5F5F5",
+        "border_color": "#CCCCCC",
+        "corner_radius": 8,
+        "text_color": "#333333",
+        "font": ("Lato", 28, "bold")
+        """
+        password_show_btn = ctk.CTkButton(self,
+                                        text="👁",
+                                        font=("Lato", 30, "bold"),
+                                        width=48,
+                                        height=50,
+                                        fg_color="#000000",
+                                        bg_color="#2B2B2B",
+                                        border_color="#CCCCCC",
+                                        corner_radius=5,
+                                        hover_color= "#FFE23D",
+                                        command=lambda: password_Entry.configure(show="")
+                                        )
+        password_show_btn.place(x=345, y=271)
         self.password_warning = ctk.CTkLabel(self, text="", width=140, height=24, **Styles.label_styles["error_title"])
-        self.password_warning.place(relx=182, rely=24)
+        self.password_warning.place(x=20, y=321)
         
 #------------------------------------------------------------------------------------------------------
         Body_Weight_Increase = ctk.CTkButton(self,
@@ -219,7 +244,7 @@ class Sign_Up(ctk.CTkFrame):
         Age_Increase.place(x=691, y=404)
 
         Age_Label = ctk.CTkLabel(self,
-                                    text="Body Height: ",
+                                    text="Age: ",
                                     width=130,
                                     height=58,
                                     **Styles.label_styles["subtitle2"])
@@ -277,3 +302,4 @@ class Sign_Up(ctk.CTkFrame):
                                     **Styles.button_styles["Big"],
                                     command=self.Submit)
         Submit_Btn.place(relx=0.5, rely=0.9, anchor="center")
+        
