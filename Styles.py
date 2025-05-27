@@ -41,7 +41,7 @@ label_styles = {
     "title2": {
         "text_color": "#e4e4e4",
         "corner_radius": 3,
-        "font": ("Lato", 50, "bold")
+        "font": ("Lato", 48, "bold")
     },
     "subtitle": {
         "text_color": "#c4c364",
@@ -50,6 +50,11 @@ label_styles = {
     },
     "subtitle2": {
         "text_color": "#e4e152",
+        "corner_radius": 3,
+        "font": ("Lato", 14, "bold")
+    },
+    "error_title": {
+        "text_color": "#FF0000",
         "corner_radius": 3,
         "font": ("Lato", 14, "bold")
     }
@@ -61,6 +66,7 @@ entry_styles = {
         "fg_color": "#F5F5F5",
         "border_color": "#CCCCCC",
         "corner_radius": 8,
-        "text_color": "#333333"
+        "text_color": "#333333",
+        "font": ("Lato", 28, "bold")
     }
 }
