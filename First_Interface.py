@@ -24,6 +24,8 @@ ctk.set_default_color_theme("blue")
 ctk.set_window_scaling(1)
 ctk.set_widget_scaling(1)
 Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
+Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
+
 class Sign_Up(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -69,6 +71,7 @@ class Sign_Up(ctk.CTkFrame):
             self.username_warning.configure(text="⚠ Username is already Taken")
             self.username_warning.update()
             valid = False
+        #---------------------------------------------------------------------------------------------------
         if not self.check_empty(self.password, self.password_warning, "⚠ Password required"):
             valid = False
         if not self.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
@@ -91,7 +94,13 @@ class Sign_Up(ctk.CTkFrame):
             
         if not self.check_empty(self.email, self.email_warning, "⚠ Email required"):
             valid = False
-
+        elif Side_Functions.suggest_email_domain(self.email.get()) != None:
+            Domain = Side_Functions.suggest_email_domain(self.email.get())
+            self.email_warning.configure(text=f"Did you mean {Domain}")
+        elif self.email.get() in Emails:
+            self.email_warning.configure(text="⚠ Email is already Taken")
+            valid = False
+            
         if not self.check_empty(self.age, self.age_warning, "⚠ Age required"):
             valid = False
         elif self.age.get().isalpha():
