@@ -31,6 +31,7 @@ class Main_Window(ctk.CTk):
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
         
         self.Showing_Sign_Up = Sign_Up(self)
+        self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
         self.Show_Page(self.First_Interface_Frame)
@@ -82,8 +83,11 @@ class Main_Window(ctk.CTk):
             if isinstance(widget, ctk.CTkFrame):
                 widget.place_forget()
         Page.place(relx=0, rely=0, relwidth=1, relheight=1)
-    def Showing_Sign_Up(self):
-        self.Show_Page(self.Show_Sign_Up)
+    def Create_back_btn(self, master, Frame, x, y):
+        back_btn = ctk.CTkButton(master, width=127, height=37, text="Back <-", 
+                                **Styles.button_styles["Small"],
+                                command=lambda: self.Show_Page(Frame))
+        back_btn.place(x=x, y=y)
         
 
 Main = Main_Window()
