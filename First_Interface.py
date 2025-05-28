@@ -17,6 +17,7 @@ with open("GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
 #First: Sign up Interface/Class
 
+    
 # // Main Window...
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -29,9 +30,9 @@ class Sign_Up(ctk.CTkFrame):
         self.username = ctk.StringVar()
         self.password = ctk.StringVar()
         self.email = ctk.StringVar()
-        self.body_Weight = ctk.IntVar(value=0)
-        self.body_Height = ctk.IntVar(value=0)
-        self.age = ctk.IntVar(value=0)
+        self.body_Weight = ctk.StringVar(value=0)
+        self.body_Height = ctk.StringVar(value=0)
+        self.age = ctk.StringVar(value=0)
         self.Activity = ctk.StringVar(value="Moderate: exercise 4-5 times/week")
         self.Status = False
         self.Create_Sign_Up_Frame()
@@ -44,7 +45,7 @@ class Sign_Up(ctk.CTkFrame):
         ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy)
     def check_empty(self, entry, warning_label, message):
         if isinstance(entry.get(), str):
-            if entry.get().strip() == "":
+            if entry.get().strip() == "" or entry.get() == "0":
                 warning_label.configure(text=message)
                 return False
             else:
@@ -72,13 +73,33 @@ class Sign_Up(ctk.CTkFrame):
             valid = False
         if not self.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
             valid = False
+        elif self.body_Weight.get().isalpha():
+            self.weight_warning.configure(text="⚠ Enter Numbers Only")
+            valid = False
+        elif int(self.body_Weight.get()) < 0:
+            self.weight_warning.configure(text="⚠ Negative Numbers \naren't allowed")
+            valid = False
+            
         if not self.check_empty(self.body_Height, self.height_warning, "⚠ Height required"):
             valid = False
+        elif self.body_Height.get().isalpha():
+            self.height_warning.configure(text="⚠ Enter Numbers Only")
+            valid = False
+        elif int(self.body_Height.get()) < 0:
+            self.height_warning.configure(text="⚠ Negative Numbers \naren't allowed")
+            valid = False
+            
         if not self.check_empty(self.email, self.email_warning, "⚠ Email required"):
             valid = False
+
         if not self.check_empty(self.age, self.age_warning, "⚠ Age required"):
             valid = False
-        
+        elif self.age.get().isalpha():
+            self.age_warning.configure(text="⚠ Enter Numbers Only")
+            valid = False
+        elif int(self.age.get()) < 0:
+            self.age_warning.configure(text="⚠ Negative Numbers \naren't allowed")
+            valid = False
         if valid:
             self.SignUp_Data_Management()
 
@@ -176,7 +197,7 @@ class Sign_Up(ctk.CTkFrame):
                                             width=48,
                                             height=50,
                                             **Styles.button_styles["Medium"],
-                                            command=lambda: self.body_Weight.set(self.body_Weight.get() + 1))
+                                            command=lambda: self.body_Weight.set(int(self.body_Weight.get()) + 1))
         Body_Weight_Increase.place(x=202, y=404)
         
         Body_Weight_Label = ctk.CTkLabel(self,
@@ -199,7 +220,7 @@ class Sign_Up(ctk.CTkFrame):
                                             width=48,
                                             height=50,
                                             **Styles.button_styles["Medium"],
-                                            command=lambda: self.body_Weight.set(self.body_Weight.get() - 1))
+                                            command=lambda: self.body_Weight.set(int(self.body_Weight.get()) - 1))
         Body_Weight_Decrease.place(x=30, y=404)
         #--------------------------------------------------------------------------
         Body_Height_Increase = ctk.CTkButton(self,
@@ -207,7 +228,7 @@ class Sign_Up(ctk.CTkFrame):
                                             width=48,
                                             height=50,
                                             **Styles.button_styles["Medium"],
-                                            command=lambda: self.body_Height.set(self.body_Height.get() + 1))
+                                            command=lambda: self.body_Height.set(int(self.body_Height.get()) + 1))
         Body_Height_Increase.place(x=444, y=404)
         
         Body_Height_Label = ctk.CTkLabel(self,
@@ -232,7 +253,7 @@ class Sign_Up(ctk.CTkFrame):
                                             width=48,
                                             height=50,
                                             **Styles.button_styles["Medium"],
-                                            command=lambda: self.body_Height.set(self.body_Height.get() - 1))
+                                            command=lambda: self.body_Height.set(int(self.body_Height.get()) - 1))
         Body_Height_Decrease.place(x=272, y=404)
         #------------------------------------------------------------------------------------------
         Age_Increase = ctk.CTkButton(self,
@@ -240,7 +261,7 @@ class Sign_Up(ctk.CTkFrame):
                                             width=48,
                                             height=50,
                                             **Styles.button_styles["Medium"],
-                                            command=lambda: self.age.set(self.age.get() + 1))
+                                            command=lambda: self.age.set(int(self.age.get()) + 1))
         Age_Increase.place(x=691, y=404)
 
         Age_Label = ctk.CTkLabel(self,
@@ -265,7 +286,7 @@ class Sign_Up(ctk.CTkFrame):
                                             width=48,
                                             height=50,
                                             **Styles.button_styles["Medium"],
-                                            command=lambda: self.age.set(self.age.get() - 1))
+                                            command=lambda: self.age.set(int(self.age.get()) - 1))
         Age_Decrease.place(x=519, y=404)
         #---------------------------------------------------------------------------------------
         Activity_Label = ctk.CTkLabel(self,
@@ -285,6 +306,7 @@ class Sign_Up(ctk.CTkFrame):
                                                     "Extra Active: very intense exercise daily, or physical job"],
                                             width=334,
                                             height=41,
+                                            state="readonly",
                                             border_color="#4A90E2",
                                             bg_color="#2B2B2B",
                                             dropdown_fg_color="#2B2B2B",
@@ -294,7 +316,7 @@ class Sign_Up(ctk.CTkFrame):
                                             font=("Lato", 20, "bold"),
                                             dropdown_font=("Lato", 20, "bold"))
         self.Activity.place(x=411, y=275)
-        
+        self.Activity.set("Moderate: exercise 4-5 times/week")
         Submit_Btn = ctk.CTkButton(self,
                                     text="Sign Up",
                                     width=270,
