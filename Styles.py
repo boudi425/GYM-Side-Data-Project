@@ -74,9 +74,9 @@ entry_styles = {
 checkBox = {
     "Box1": {
         "hover_color": "#0FE4D2",
-        "bg_color": "#2B2B2B",
+        "bg_color": "#6200FF",
         "corner_radius": 5,
         "fg_color": "#37ADA7",
-        "border_width": 0
+        "border_width": 0,
     }
 }
