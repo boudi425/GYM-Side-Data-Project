@@ -3,7 +3,6 @@ import Styles
 import datetime
 import sqlite3
 import Side_Functions
-import Web_Scrapping
 import os
 import json
 import sys
@@ -45,36 +44,20 @@ class Sign_Up(ctk.CTkFrame):
         root.title("Error")
         ctk.CTkLabel(root, text=Label_Text, **Styles.label_styles["subtitle2"])
         ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy)
-    def check_empty(self, entry, warning_label, message):
-        if isinstance(entry.get(), str):
-            if entry.get().strip() == "" or entry.get() == "0":
-                warning_label.configure(text=message)
-                return False
-            else:
-                warning_label.configure(text="")
-                return True
-        if isinstance(entry.get(), int):
-            if entry.get() == 0:
-                warning_label.configure(text=message)
-                return False
-            else:
-                warning_label.configure(text="")
-                return True
-
 
     def Submit(self):
         valid = True
         
-        if not self.check_empty(self.username, self.username_warning, "⚠ Username required"):
+        if not Side_Functions.check_empty(self.username, self.username_warning, "⚠ Username required"):
             valid = False
         elif self.username.get().capitalize() in Names:
             self.username_warning.configure(text="⚠ Username is already Taken")
             self.username_warning.update()
             valid = False
         #---------------------------------------------------------------------------------------------------
-        if not self.check_empty(self.password, self.password_warning, "⚠ Password required"):
+        if not Side_Functions.check_empty(self.password, self.password_warning, "⚠ Password required"):
             valid = False
-        if not self.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
+        if not Side_Functions.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
             valid = False
         elif self.body_Weight.get().isalpha():
             self.weight_warning.configure(text="⚠ Enter Numbers Only")
@@ -83,7 +66,7 @@ class Sign_Up(ctk.CTkFrame):
             self.weight_warning.configure(text="⚠ Negative Numbers \naren't allowed")
             valid = False
             
-        if not self.check_empty(self.body_Height, self.height_warning, "⚠ Height required"):
+        if not Side_Functions.check_empty(self.body_Height, self.height_warning, "⚠ Height required"):
             valid = False
         elif self.body_Height.get().isalpha():
             self.height_warning.configure(text="⚠ Enter Numbers Only")
@@ -92,16 +75,16 @@ class Sign_Up(ctk.CTkFrame):
             self.height_warning.configure(text="⚠ Negative Numbers \naren't allowed")
             valid = False
             
-        if not self.check_empty(self.email, self.email_warning, "⚠ Email required"):
+        if not Side_Functions.check_empty(self.email, self.email_warning, "⚠ Email required"):
             valid = False
         elif Side_Functions.suggest_email_domain(self.email.get()) != None:
             Domain = Side_Functions.suggest_email_domain(self.email.get())
-            self.email_warning.configure(text=f"Did you mean {Domain}")
+            self.email_warning.configure(text=Domain)
         elif self.email.get() in Emails:
             self.email_warning.configure(text="⚠ Email is already Taken")
             valid = False
             
-        if not self.check_empty(self.age, self.age_warning, "⚠ Age required"):
+        if not Side_Functions.check_empty(self.age, self.age_warning, "⚠ Age required"):
             valid = False
         elif self.age.get().isalpha():
             self.age_warning.configure(text="⚠ Enter Numbers Only")
@@ -333,4 +316,127 @@ class Sign_Up(ctk.CTkFrame):
                                     **Styles.button_styles["Big"],
                                     command=self.Submit)
         Submit_Btn.place(relx=0.5, rely=0.9, anchor="center")
+class Login(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.Email = ctk.StringVar()
+        self.Password = ctk.StringVar()
+        self.Stay_logged = False
+        self.Accept_Terms = False
+        self.Token = ""
+        self.Create_Login_Frame()
+        
+    def Submit(self):
+        valid = True 
+        if not Side_Functions.check_empty(self.Email.get(), self.Email_warning, "⚠ Email required"):
+            valid = False
+        elif self.Email.get() in Emails:
+            password = Cur.execute("SELECT Password FROM Users WHERE Email = ?", (self.Email.get())).fetchone()
+            if not Side_Functions.verify_password(self.Password.get(), password[0]):
+                self.Password_waring.configure(text="⚠ Incorrect Password")
+                valid = False
+        if not self.Terms_and_Privacy_Cb:
+            self.Submit_Btn_warning.configure(text="⚠ Must Accept our Terms.")
+            valid = False
+        if self.Stay_Logged_Cb:
+            Token = Side_Functions.generate_token()
+            with open("auth_token.text", "w") as f:
+                f.write(Token)
+                Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (Token, self.Email.get()))
+                Con.commit()
+        if valid:
+            self.destroy()
+            self.Access()
+    def Access(self):
+        self.Access_Gained = ctk.CTkToplevel()
+        self.Access_Gained.geometry("400x200")
+        self.Access_Gained.title("Processing...")
+        self.Bar = ctk.CTkProgressBar(self.Access_Gained, width=300, progress_color="green",
+                        corner_radius=6)
+        self.Bar.pack(pady=50)
+        self.Bar.set(0)
+        
+    def Loading_Simulation(self, value=0):
+        if value <= 1:
+            self.Bar.set(value)
+            self.Access_Gained.after(100, lambda: self.Loading_Simulation(value + 0.02))
+        else:
+            Loading_Text = ctk.CTkLabel(self.Access_Gained, text="Entering Main Menu...", **Styles.label_styles["subtitle2"])
+            Loading_Text.place(pady=10)
+            self.Access_Gained.after(2000, self.Access_Gained.destroy())
+            
+    def Create_Login_Frame(self):
+        Login_Label = ctk.CTkLabel(self, 
+                                text="Login",
+                                width=147,
+                                height=58,
+                                **Styles.label_styles["title2"])
+        Login_Label.place(x=293, y=20, anchor="center")
+        
+        Email_Label = ctk.CTkLabel(self, text="Email",
+                                width=134,
+                                height=58,
+                                **Styles.label_styles["subtitle2"])
+        Email_Label.place(x=209, y=66)
+        
+        Email_entry = ctk.CTkEntry(self, textvariable=self.Email,
+                                width=346, height=50,
+                                **Styles.entry_styles["default"])
+        Email_entry.place(x=209, y=129, anchor="center")
+        
+        self.Email_warning = ctk.CTkLabel(self, width=140, height=24, text="",
+                                        **Styles.label_styles["error_title"])
+        self.Email_warning.place(x=218, y=192)
+        
+        Password_Label = ctk.CTkLabel(self, width=235, height=58, text="Password",
+                                    **Styles.label_styles["subtitle2"])
+        Password_Label.place(x=209, y=221)
+        
+        Password_entry = ctk.CTkEntry(self, textvariable=self.Password, show="*",
+                                    width=334, height=41,
+                                    **Styles.entry_styles["default"])
+        Password_entry.place(x=209, y=279, anchor="center")
+        password_show_btn = ctk.CTkButton(self,
+                                        text="👁",
+                                        font=("Lato", 30, "bold"),
+                                        width=48,
+                                        height=50,
+                                        fg_color="#000000",
+                                        bg_color="#2B2B2B",
+                                        border_color="#CCCCCC",
+                                        corner_radius=5,
+                                        hover_color= "#FFE23D",
+                                        command=lambda: Password_entry.configure(show="")
+                                        )
+        password_show_btn.place(x=543, y=275)
+        
+        self.Password_waring = ctk.CTkLabel(self, text="", width=182, height=24,
+                                            **Styles.label_styles["error_title"])
+        self.Password_waring.place(x=218, y=325, anchor="center")
+        
+        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(self, width=40, height=40, **Styles.checkBox["Box1"])
+        self.Terms_and_Privacy_Cb.place(x=220, y=360)
+        
+        Terms_and_Privacy_text = ctk.CTkLabel(self, width=355, height=48,
+                                            text="Accept our terms and conditions and \n privacy statement",
+                                            **Styles.label_styles["subtitle"])
+        Terms_and_Privacy_text.place(x=274, y=357)
+        
+        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, width=40, height=40, **Styles.checkBox["Box1"])
+        self.Stay_Logged_Cb.place(x=220, y=420)
+        
+        Stay_Logged_Text = ctk.CTkLabel(self, width=142, height=24,
+                                            text="Stay Logged in",
+                                            **Styles.label_styles["subtitle"])
+        Stay_Logged_Text.place(x=274, y=428)
+        
+        Submit_Btn = ctk.CTkButton(self, width=250, height=60,
+                                text="LOGIN", **Styles.button_styles["Big"],
+                                command=lambda: self.Submit())
+        Submit_Btn.place(x=233, y=480)
+        
+        self.Submit_Btn_warning = ctk.CTkLabel(self, text="", 
+                                            width=232, height=24,
+                                            **Styles.label_styles["error_title"])
+        self.Submit_Btn_warning.place(x=242, y=548)
         

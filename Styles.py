@@ -70,3 +70,13 @@ entry_styles = {
         "font": ("Lato", 28, "bold")
     }
 }
+
+checkBox = {
+    "Box1": {
+        "hover_color": "#0FE4D2",
+        "bg_color": "#2B2B2B",
+        "corner_radius": 5,
+        "fg_color": "#37ADA7",
+        "border_width": 0
+    }
+}

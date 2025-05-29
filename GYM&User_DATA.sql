@@ -9,3 +9,4 @@ CREATE TABLE IF NOT EXISTS Users (
     Age INTEGER,
     Status TEXT
 );
+
