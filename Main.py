@@ -3,8 +3,7 @@ import Styles
 import datetime
 import sqlite3
 import Side_Functions
-import Web_Scrapping
-from First_Interface import Sign_Up
+from First_Interface import Sign_Up, Login
 import os
 import json
 import sys
@@ -29,7 +28,7 @@ class Main_Window(ctk.CTk):
         self.title("BLACK GYM!!")
         self.configure(fg_color="#2B2B2B")
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
-        
+        self.Showing_Login = Login(self)
         self.Showing_Sign_Up = Sign_Up(self)
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
@@ -52,8 +51,9 @@ class Main_Window(ctk.CTk):
         Sign_up_Btn.bind("<Enter>", lambda e: Sign_up_Btn.configure(cursor="hand2"))
 
         Sign_in_Btn = ctk.CTkButton(self.First_Interface_Frame, 
-                                text="Sign In", 
+                                text="Login", 
                                 **Styles.button_styles["Big"],
+                                command=self.Showing_Login
         )
         Sign_in_Btn.place(relx=0.5, rely=0.54, relwidth=0.75 ,relheight=0.12 ,anchor="center")
         Sign_in_Btn.bind("<Enter>", lambda e: Sign_in_Btn.configure(cursor="hand2"))
