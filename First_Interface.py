@@ -321,18 +321,20 @@ class Login(ctk.CTkFrame):
         super().__init__(master)
         self.Email = ctk.StringVar()
         self.Password = ctk.StringVar()
-        self.Stay_logged = False
-        self.Accept_Terms = False
+        self.Stay_logged = ctk.BooleanVar()
+        self.Accept_Terms = ctk.BooleanVar()
         self.Token = ""
         self.Create_Login_Frame()
         
     def Submit(self):
         valid = True 
-        if not Side_Functions.check_empty(self.Email.get(), self.Email_warning, "⚠ Email required"):
+        if not Side_Functions.check_empty(self.Email, self.Email_warning, "⚠ Email required"):
             valid = False
         elif self.Email.get() in Emails:
             password = Cur.execute("SELECT Password FROM Users WHERE Email = ?", (self.Email.get())).fetchone()
-            if not Side_Functions.verify_password(self.Password.get(), password[0]):
+            if not Side_Functions.check_empty(self.Password, self.Password_waring, "⚠ Password required"):
+                valid = False
+            elif not Side_Functions.verify_password(self.Password, password[0]):
                 self.Password_waring.configure(text="⚠ Incorrect Password")
                 valid = False
         if not self.Terms_and_Privacy_Cb:
@@ -389,7 +391,7 @@ class Login(ctk.CTkFrame):
                                         **Styles.label_styles["error_title"])
         self.Email_warning.place(x=218, y=192)
         
-        Password_Label = ctk.CTkLabel(self, width=235, height=58, text="Password",
+        Password_Label = ctk.CTkLabel(self, width=235, height=58, text="Password",  
                                     **Styles.label_styles["subtitle2"])
         Password_Label.place(x=209, y=221)
         
@@ -413,24 +415,41 @@ class Login(ctk.CTkFrame):
         
         self.Password_waring = ctk.CTkLabel(self, text="", width=182, height=24,
                                             **Styles.label_styles["error_title"])
-        self.Password_waring.place(x=218, y=325, anchor="center")
-        
-        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(self, text="",**Styles.checkBox["Box1"])
+        self.Password_waring.place(x=218, y=325, anchor="center")  
+
+    # Terms and Privacy Checkbox
+        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(
+                                                    self,
+                                                    text="",
+                                                    textvariable=self.Accept_Terms,
+                                                    checkbox_height=40,
+                                                    checkbox_width=40,
+                                                    corner_radius=8
+        )
         self.Terms_and_Privacy_Cb.place(x=220, y=360)
-        
-        Terms_and_Privacy_text = ctk.CTkLabel(self, width=355, height=48,
-                                            text="Accept our terms and conditions and \n privacy statement",
-                                            **Styles.label_styles["subtitle"])
-        Terms_and_Privacy_text.place(x=274, y=357)
-        
-        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, **Styles.checkBox["Box1"])
+
+        Terms_and_Privacy_text = ctk.CTkLabel(
+            self,
+            width=355,
+            height=48,
+            text="Accept our terms and conditions\nand privacy statement",
+            **Styles.label_styles["subtitle"]
+        )
+        Terms_and_Privacy_text.place(x=274, y=360)
+
+        # Stay Logged In Checkbox
+        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, textvariable=self.Stay_logged, checkbox_width=40, checkbox_height=40, corner_radius=8)
         self.Stay_Logged_Cb.place(x=220, y=420)
-        
-        Stay_Logged_Text = ctk.CTkLabel(self, width=142, height=24,
-                                            text="Stay Logged in",
-                                            **Styles.label_styles["subtitle"])
+
+        Stay_Logged_Text = ctk.CTkLabel(
+            self,
+            width=142,
+            height=24,
+            text="Stay Logged In",
+            **Styles.label_styles["subtitle"]
+        )
         Stay_Logged_Text.place(x=274, y=428)
-        
+
         Submit_Btn = ctk.CTkButton(self, width=250, height=60,
                                 text="LOGIN", **Styles.button_styles["Big"],
                                 command=lambda: self.Submit())
