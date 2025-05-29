@@ -21,7 +21,7 @@ with open("GYM&User_DATA.sql", "r") as Table_Query:
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-class Main_Window(ctk.CTk):
+class Main_Window_First_Interface(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("800x600")
@@ -53,7 +53,7 @@ class Main_Window(ctk.CTk):
         Sign_in_Btn = ctk.CTkButton(self.First_Interface_Frame, 
                                 text="Login", 
                                 **Styles.button_styles["Big"],
-                                command=self.Showing_Login
+                                command=lambda: self.Show_Page(self.Showing_Login)
         )
         Sign_in_Btn.place(relx=0.5, rely=0.54, relwidth=0.75 ,relheight=0.12 ,anchor="center")
         Sign_in_Btn.bind("<Enter>", lambda e: Sign_in_Btn.configure(cursor="hand2"))
@@ -89,6 +89,14 @@ class Main_Window(ctk.CTk):
                                 command=lambda: self.Show_Page(Frame))
         back_btn.place(x=x, y=y)
         
-
-Main = Main_Window()
+class Dashboard(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.geometry("1000x800")
+        self.title("Dashboard")
+        self.Create_Dashboard()
+    def Create_Dashboard(self):
+        Test = ctk.CTkLabel(self, text="Still under developing...", width=500, height=500)
+        Test.place(x=500, y=500, anchor="center")
+Main = Main_Window_First_Interface()
 Main.mainloop()

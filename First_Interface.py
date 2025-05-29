@@ -355,6 +355,7 @@ class Login(ctk.CTkFrame):
                         corner_radius=6)
         self.Bar.pack(pady=50)
         self.Bar.set(0)
+        self.Loading_Simulation()
         
     def Loading_Simulation(self, value=0):
         if value <= 1:
@@ -363,15 +364,15 @@ class Login(ctk.CTkFrame):
         else:
             Loading_Text = ctk.CTkLabel(self.Access_Gained, text="Entering Main Menu...", **Styles.label_styles["subtitle2"])
             Loading_Text.place(pady=10)
-            self.Access_Gained.after(2000, self.Access_Gained.destroy())
-            
+            self.Access_Gained.after(2000, self.destroy())
+        
     def Create_Login_Frame(self):
         Login_Label = ctk.CTkLabel(self, 
                                 text="Login",
                                 width=147,
                                 height=58,
                                 **Styles.label_styles["title2"])
-        Login_Label.place(x=293, y=20, anchor="center")
+        Login_Label.place(x=293, y=20)
         
         Email_Label = ctk.CTkLabel(self, text="Email",
                                 width=134,
@@ -382,7 +383,7 @@ class Login(ctk.CTkFrame):
         Email_entry = ctk.CTkEntry(self, textvariable=self.Email,
                                 width=346, height=50,
                                 **Styles.entry_styles["default"])
-        Email_entry.place(x=209, y=129, anchor="center")
+        Email_entry.place(x=209, y=129)
         
         self.Email_warning = ctk.CTkLabel(self, width=140, height=24, text="",
                                         **Styles.label_styles["error_title"])
@@ -395,7 +396,7 @@ class Login(ctk.CTkFrame):
         Password_entry = ctk.CTkEntry(self, textvariable=self.Password, show="*",
                                     width=334, height=41,
                                     **Styles.entry_styles["default"])
-        Password_entry.place(x=209, y=279, anchor="center")
+        Password_entry.place(x=209, y=279)
         password_show_btn = ctk.CTkButton(self,
                                         text="👁",
                                         font=("Lato", 30, "bold"),
@@ -414,7 +415,7 @@ class Login(ctk.CTkFrame):
                                             **Styles.label_styles["error_title"])
         self.Password_waring.place(x=218, y=325, anchor="center")
         
-        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(self, width=40, height=40, **Styles.checkBox["Box1"])
+        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(self, text="",**Styles.checkBox["Box1"])
         self.Terms_and_Privacy_Cb.place(x=220, y=360)
         
         Terms_and_Privacy_text = ctk.CTkLabel(self, width=355, height=48,
@@ -422,7 +423,7 @@ class Login(ctk.CTkFrame):
                                             **Styles.label_styles["subtitle"])
         Terms_and_Privacy_text.place(x=274, y=357)
         
-        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, width=40, height=40, **Styles.checkBox["Box1"])
+        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, **Styles.checkBox["Box1"])
         self.Stay_Logged_Cb.place(x=220, y=420)
         
         Stay_Logged_Text = ctk.CTkLabel(self, width=142, height=24,
