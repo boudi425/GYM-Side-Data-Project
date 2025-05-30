@@ -46,7 +46,7 @@ label_styles = {
     "subtitle": {
         "text_color": "#c4c364",
         "corner_radius": 3,
-        "font": ("Lato", 14, "bold")
+        "font": ("Lato", 20, "bold")
     },
     "subtitle2": {
         "text_color": "#e4e152",
