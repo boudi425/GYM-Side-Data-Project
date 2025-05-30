@@ -3,7 +3,7 @@ import Styles
 import datetime
 import sqlite3
 import Side_Functions
-from First_Interface import Sign_Up, Login
+from First_Interface import Sign_Up, Login, Feedback
 import os
 import json
 import sys
@@ -30,6 +30,7 @@ class Main_Window_First_Interface(ctk.CTk):
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
         self.Showing_Login = Login(self)
         self.Showing_Sign_Up = Sign_Up(self)
+        self.Create_back_btn(self.Showing_Login, self.Showing_Sign_Up, 20, 511)
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
@@ -73,7 +74,7 @@ class Main_Window_First_Interface(ctk.CTk):
         Exit_Btn.bind("<Enter>", lambda e: Exit_Btn.configure(cursor="hand2"))
 
         Feedback_Btn = ctk.CTkButton(self.First_Interface_Frame, 
-                                text="Feedback", 
+                                text="Report Problem", 
                                 **Styles.button_styles["Small"]
         )
         Feedback_Btn.place(relx=0.5, rely=0.9, relwidth=0.3 ,relheight=0.12 ,anchor="center")

@@ -325,138 +325,132 @@ class Login(ctk.CTkFrame):
         self.Accept_Terms = ctk.BooleanVar()
         self.Token = ""
         self.Create_Login_Frame()
-        
+
     def Submit(self):
-        valid = True 
+        valid = True
+        self.Email_warning.configure(text="")
+        self.Password_warning.configure(text="")
+        self.Submit_Btn_warning.configure(text="")
+
+        # Email Validation
         if not Side_Functions.check_empty(self.Email, self.Email_warning, "⚠ Email required"):
             valid = False
-        elif self.Email.get() in Emails:
-            password = Cur.execute("SELECT Password FROM Users WHERE Email = ?", (self.Email.get())).fetchone()
-            if not Side_Functions.check_empty(self.Password, self.Password_waring, "⚠ Password required"):
-                valid = False
-            elif not Side_Functions.verify_password(self.Password, password[0]):
-                self.Password_waring.configure(text="⚠ Incorrect Password")
-                valid = False
-        if not self.Terms_and_Privacy_Cb:
-            self.Submit_Btn_warning.configure(text="⚠ Must Accept our Terms.")
+        elif self.Email.get() not in Emails:
+            self.Email_warning.configure(text="⚠ Email not found")
             valid = False
-        if self.Stay_Logged_Cb:
-            Token = Side_Functions.generate_token()
-            with open("auth_token.text", "w") as f:
-                f.write(Token)
-                Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (Token, self.Email.get()))
-                Con.commit()
+        else:
+            # Password Validation
+            password_data = Cur.execute("SELECT Password FROM Users WHERE Email = ?", (self.Email.get(),)).fetchone()
+            if not Side_Functions.check_empty(self.Password, self.Password_warning, "⚠ Password required"):
+                valid = False
+            elif password_data[0] != self.Password.get():
+                self.Password_warning.configure(text="⚠ Incorrect Password")
+                valid = False
+
+        # Terms Checkbox
+        if not self.Accept_Terms.get():
+            self.Submit_Btn_warning.configure(text="⚠ Must accept our Terms.")
+            valid = False
+
         if valid:
+            # Stay Logged Token
+            if self.Stay_logged.get():
+                token = Side_Functions.generate_token()
+                with open("auth_token.txt", "w") as f:
+                    f.write(token)
+                Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
+                Con.commit()
+
             self.destroy()
             self.Access()
+
     def Access(self):
         self.Access_Gained = ctk.CTkToplevel()
         self.Access_Gained.geometry("400x200")
         self.Access_Gained.title("Processing...")
-        self.Bar = ctk.CTkProgressBar(self.Access_Gained, width=300, progress_color="green",
-                        corner_radius=6)
+
+        self.Bar = ctk.CTkProgressBar(self.Access_Gained, width=300, progress_color="green", corner_radius=6, height=30)
         self.Bar.pack(pady=50)
         self.Bar.set(0)
+
         self.Loading_Simulation()
-        
+
     def Loading_Simulation(self, value=0):
         if value <= 1:
             self.Bar.set(value)
             self.Access_Gained.after(100, lambda: self.Loading_Simulation(value + 0.02))
         else:
             Loading_Text = ctk.CTkLabel(self.Access_Gained, text="Entering Main Menu...", **Styles.label_styles["subtitle2"])
-            Loading_Text.place(pady=10)
-            self.Access_Gained.after(2000, self.destroy())
-        
-    def Create_Login_Frame(self):
-        Login_Label = ctk.CTkLabel(self, 
-                                text="Login",
-                                width=147,
-                                height=58,
-                                **Styles.label_styles["title2"])
-        Login_Label.place(x=293, y=20)
-        
-        Email_Label = ctk.CTkLabel(self, text="Email",
-                                width=134,
-                                height=58,
-                                **Styles.label_styles["subtitle2"])
-        Email_Label.place(x=209, y=66)
-        
-        Email_entry = ctk.CTkEntry(self, textvariable=self.Email,
-                                width=346, height=50,
-                                **Styles.entry_styles["default"])
-        Email_entry.place(x=209, y=129)
-        
-        self.Email_warning = ctk.CTkLabel(self, width=140, height=24, text="",
-                                        **Styles.label_styles["error_title"])
-        self.Email_warning.place(x=218, y=192)
-        
-        Password_Label = ctk.CTkLabel(self, width=235, height=58, text="Password",  
-                                    **Styles.label_styles["subtitle2"])
-        Password_Label.place(x=209, y=221)
-        
-        Password_entry = ctk.CTkEntry(self, textvariable=self.Password, show="*",
-                                    width=334, height=41,
-                                    **Styles.entry_styles["default"])
-        Password_entry.place(x=209, y=279)
-        password_show_btn = ctk.CTkButton(self,
-                                        text="👁",
-                                        font=("Lato", 30, "bold"),
-                                        width=48,
-                                        height=50,
-                                        fg_color="#000000",
-                                        bg_color="#2B2B2B",
-                                        border_color="#CCCCCC",
-                                        corner_radius=5,
-                                        hover_color= "#FFE23D",
-                                        command=lambda: Password_entry.configure(show="")
-                                        )
-        password_show_btn.place(x=543, y=275)
-        
-        self.Password_waring = ctk.CTkLabel(self, text="", width=182, height=24,
-                                            **Styles.label_styles["error_title"])
-        self.Password_waring.place(x=218, y=325, anchor="center")  
+            Loading_Text.pack(pady=10)
+            self.Access_Gained.after(2000, self.Access_Gained.destroy)
 
-    # Terms and Privacy Checkbox
-        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(
-                                                    self,
-                                                    text="",
-                                                    textvariable=self.Accept_Terms,
-                                                    checkbox_height=40,
-                                                    checkbox_width=40,
-                                                    corner_radius=8
+    def Create_Login_Frame(self):
+        Login_Label = ctk.CTkLabel(self, text="Login", width=147, height=58, **Styles.label_styles["title2"])
+        Login_Label.place(x=293, y=20)
+
+        Email_Label = ctk.CTkLabel(self, text="Email:", width=134, height=58, **Styles.label_styles["subtitle2"])
+        Email_Label.place(x=185, y=80)
+
+        Email_entry = ctk.CTkEntry(self, textvariable=self.Email, width=346, height=50, **Styles.entry_styles["default"])
+        Email_entry.place(x=209, y=129)
+
+        self.Email_warning = ctk.CTkLabel(self, width=300, height=24, text="", **Styles.label_styles["error_title"])
+        self.Email_warning.place(x=209, y=185)
+
+        Password_Label = ctk.CTkLabel(self, text="Password:", **Styles.label_styles["subtitle2"])
+        Password_Label.place(x=205, y=211)
+
+        Password_entry = ctk.CTkEntry(self, textvariable=self.Password, show="*", width=334, height=41, **Styles.entry_styles["default"])
+        Password_entry.place(x=209, y=250)
+
+        password_show_btn = ctk.CTkButton(
+            self,
+            text="👁",
+            font=("Lato", 30, "bold"),
+            width=48,
+            height=50,
+            fg_color="#000000",
+            bg_color="#2B2B2B",
+            border_color="#CCCCCC",
+            corner_radius=5,
+            hover_color="#FFE23D",
+            command=lambda: Password_entry.configure(show="")
         )
+        password_show_btn.place(x=543, y=245)
+
+        self.Password_warning = ctk.CTkLabel(self, text="", width=300, height=24, **Styles.label_styles["error_title"])
+        self.Password_warning.place(x=209, y=295)
+
+        # Terms and Privacy Checkbox
+        self.Terms_and_Privacy_Cb = ctk.CTkCheckBox(self, text="Accept our terms and conditions\nand privacy statement", 
+                                                    variable=self.Accept_Terms, 
+                                                    checkbox_height=40, 
+                                                    checkbox_width=40, 
+                                                    corner_radius=8,
+                                                    font=("Lato", 20, "bold"),
+                                                    text_color="#c4c364",
+                                                    text_color_disabled="#E5FF00")
         self.Terms_and_Privacy_Cb.place(x=220, y=360)
 
-        Terms_and_Privacy_text = ctk.CTkLabel(
-            self,
-            width=355,
-            height=48,
-            text="Accept our terms and conditions\nand privacy statement",
-            **Styles.label_styles["subtitle"]
-        )
-        Terms_and_Privacy_text.place(x=274, y=360)
 
         # Stay Logged In Checkbox
-        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, textvariable=self.Stay_logged, checkbox_width=40, checkbox_height=40, corner_radius=8)
+        self.Stay_Logged_Cb = ctk.CTkCheckBox(self, text="", variable=self.Stay_logged, checkbox_width=40, checkbox_height=40, corner_radius=8)
         self.Stay_Logged_Cb.place(x=220, y=420)
 
-        Stay_Logged_Text = ctk.CTkLabel(
-            self,
-            width=142,
-            height=24,
-            text="Stay Logged In",
-            **Styles.label_styles["subtitle"]
-        )
+        Stay_Logged_Text = ctk.CTkLabel(self, width=142, height=24, text="Stay Logged In", **Styles.label_styles["subtitle"])
         Stay_Logged_Text.place(x=274, y=428)
 
-        Submit_Btn = ctk.CTkButton(self, width=250, height=60,
-                                text="LOGIN", **Styles.button_styles["Big"],
-                                command=lambda: self.Submit())
-        Submit_Btn.place(x=233, y=480)
-        
-        self.Submit_Btn_warning = ctk.CTkLabel(self, text="", 
-                                            width=232, height=24,
-                                            **Styles.label_styles["error_title"])
-        self.Submit_Btn_warning.place(x=242, y=548)
-        
+        Submit_Btn = ctk.CTkButton(self, width=250, height=60, text="LOGIN", **Styles.button_styles["Big"], command=self.Submit)
+        Submit_Btn.place(x=233, y=500)
+
+        self.Submit_Btn_warning = ctk.CTkLabel(self, text="", width=300, height=24, **Styles.label_styles["error_title"])
+        self.Submit_Btn_warning.place(x=233, y=565)
+class Feedback(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.Username = ctk.StringVar()
+        self.Report_Type = ctk.StringVar()
+        self.Feedback = ctk.StringVar()
+    
+    def Create_Report_Frame(self):
+        pass
