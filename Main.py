@@ -3,11 +3,11 @@ import Styles
 import datetime
 import sqlite3
 import Side_Functions
-from First_Interface import Sign_Up, Login, Feedback
+from First_Interface import Sign_Up, Login, Report_Section
 import os
 import json
 import sys
-
+from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
@@ -15,6 +15,11 @@ Con = sqlite3.connect("Users_Data.db")
 Cur = Con.cursor()
 with open("GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
+    
+Con_Feed_Repo = sqlite3.connect("Reports&Feedbacks.db")
+Cur_Feed_Repo = Con_Feed_Repo.cursor()
+with open("Reports&Feedbacks.sql", "r") as query:
+    Cur_Feed_Repo.executescript(query.read())
 #First: Sign up Interface/Class
 
 # // Main Window...
@@ -29,13 +34,23 @@ class Main_Window_First_Interface(ctk.CTk):
         self.configure(fg_color="#2B2B2B")
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
         self.Showing_Login = Login(self)
-        self.Showing_Sign_Up = Sign_Up(self)
+        self.Showing_Sign_Up = Sign_Up(self, self.Show_Login)
+        self.Showing_Report = Report_Section(self)
+        
+        self.Create_back_btn(self.Showing_Report, self.First_Interface_Frame, 20, 511)
         self.Create_back_btn(self.Showing_Login, self.Showing_Sign_Up, 20, 511)
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
         self.Show_Page(self.First_Interface_Frame)
     def Create_First_InterFace(self):
+        image_path = "Black Gym Icon.jpeg"
+        pil_image = Image.open(image_path)
+        
+        ctk_image = ctk.CTkImage(dark_image=pil_image, size=(150, 120))
+        image_label = ctk.CTkLabel(self, image=ctk_image, text="")
+        image_label.place(x=650, y=480)
+        
         Title_Label = ctk.CTkLabel(self.First_Interface_Frame, 
                                 text="Welcome to THE BLACK GYM!!", 
                                 **Styles.label_styles["title1"]
@@ -68,14 +83,15 @@ class Main_Window_First_Interface(ctk.CTk):
                                 corner_radius= 14,
                                 font= ("Lato", 40, "bold"),
                                 border_width= 0,
-                                command= lambda: self.Show_Page(self.Test_Frame)
+                                command= lambda: self.Check_if_sure()
         )
         Exit_Btn.place(relx=0.5, rely=0.74, relwidth=0.75 ,relheight=0.12 ,anchor="center")
         Exit_Btn.bind("<Enter>", lambda e: Exit_Btn.configure(cursor="hand2"))
 
         Feedback_Btn = ctk.CTkButton(self.First_Interface_Frame, 
                                 text="Report Problem", 
-                                **Styles.button_styles["Small"]
+                                **Styles.button_styles["Small"],
+                                command=lambda: self.Show_Page(self.Showing_Report)
         )
         Feedback_Btn.place(relx=0.5, rely=0.9, relwidth=0.3 ,relheight=0.12 ,anchor="center")
         Feedback_Btn.bind("<Enter>", lambda e: Feedback_Btn.configure(cursor="hand2"))
@@ -90,14 +106,23 @@ class Main_Window_First_Interface(ctk.CTk):
                                 command=lambda: self.Show_Page(Frame))
         back_btn.place(x=x, y=y)
         
-class Dashboard(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-        self.geometry("1000x800")
-        self.title("Dashboard")
-        self.Create_Dashboard()
-    def Create_Dashboard(self):
-        Test = ctk.CTkLabel(self, text="Still under developing...", width=500, height=500)
-        Test.place(x=500, y=500, anchor="center")
+    def Show_Login(self):
+        self.Show_Page(self.Showing_Login)
+        
+    def Destroy_Everything(self, additional_Top):
+        additional_Top.destroy()
+        for Widget in self.winfo_children():
+            Widget.place_forget()
+        self.destroy()
+        
+    def Check_if_sure(self):
+        self.Sure_Windows = ctk.CTkToplevel()
+        self.Sure_Windows.geometry("400x250")
+        self.Sure_Windows.title("Are you sure?")
+        ctk.CTkLabel(self.Sure_Windows, text="Are you sure \nyou want to proceed?: ", **Styles.label_styles["subtitle2"]).pack(pady=10)
+        ctk.CTkButton(self.Sure_Windows, text="Yes", **Styles.button_styles["Small"], command=lambda: self.Destroy_Everything(self.Sure_Windows)).pack(padx=10, pady=10)
+        ctk.CTkButton(self.Sure_Windows, text="No", **Styles.button_styles["Small"], command= self.Sure_Windows.destroy).pack(padx=5, pady=5)
+        self.Sure_Windows.attributes("-topmost", True)
+
 Main = Main_Window_First_Interface()
 Main.mainloop()

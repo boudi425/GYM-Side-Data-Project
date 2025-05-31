@@ -14,6 +14,11 @@ Con = sqlite3.connect("Users_Data.db")
 Cur = Con.cursor()
 with open("GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
+    
+Con_Feed_Repo = sqlite3.connect("Reports&Feedbacks.db")
+Cur_Feed_Repo = Con_Feed_Repo.cursor()
+with open("Reports&Feedbacks.sql", "r") as query:
+    Cur.executescript(query.read())
 #First: Sign up Interface/Class
 
     
@@ -26,8 +31,10 @@ Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
 Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
 
 class Sign_Up(ctk.CTkFrame):
-    def __init__(self, master):
+    def __init__(self, master, switch_screen=None):
         super().__init__(master)
+        self.master = master
+        self.switch_screen = switch_screen
         self.username = ctk.StringVar()
         self.password = ctk.StringVar()
         self.email = ctk.StringVar()
@@ -94,6 +101,8 @@ class Sign_Up(ctk.CTkFrame):
             valid = False
         if valid:
             self.SignUp_Data_Management()
+            if self.switch_screen:
+                self.switch_screen()
 
     def SignUp_Data_Management(self):
         Cur.execute("""INSERT INTO Users(
@@ -161,12 +170,7 @@ class Sign_Up(ctk.CTkFrame):
                                     height=41,
                                     **Styles.entry_styles["default"])
         password_Entry.place(x=11, y=275)
-        """"fg_color": "#F5F5F5",
-        "border_color": "#CCCCCC",
-        "corner_radius": 8,
-        "text_color": "#333333",
-        "font": ("Lato", 28, "bold")
-        """
+        
         password_show_btn = ctk.CTkButton(self,
                                         text="👁",
                                         font=("Lato", 30, "bold"),
@@ -325,7 +329,24 @@ class Login(ctk.CTkFrame):
         self.Accept_Terms = ctk.BooleanVar()
         self.Token = ""
         self.Create_Login_Frame()
-
+    
+    def Check_if_Logged(self):
+        try:
+            with open("auth_token.txt", "r+") as f:
+                token = f.read().strip()
+                if token:
+                    already_logged_window = ctk.CTkToplevel()
+                    already_logged_window.geometry("300x150")
+                    already_logged_window.title("Wish to proceed?")
+                    ctk.CTkLabel(already_logged_window, text="You already logged, Continue?", **Styles.label_styles["subtitle2"]).pack(pady=10)
+                    ctk.CTkButton(already_logged_window, text="Yes", **Styles.button_styles["Small"], command=lambda: self.Access()).pack(padx=10, pady=10)
+                    ctk.CTkButton(already_logged_window, text="No", **Styles.button_styles["Small"], command=lambda: self.Create_Login_Frame()).pack(padx=5, pady=5)
+                    already_logged_window.attributes("-topmost", True)
+                else: 
+                    self.Create_Login_Frame()
+        except:
+            None
+                
     def Submit(self):
         valid = True
         self.Email_warning.configure(text="")
@@ -372,7 +393,8 @@ class Login(ctk.CTkFrame):
         self.Bar = ctk.CTkProgressBar(self.Access_Gained, width=300, progress_color="green", corner_radius=6, height=30)
         self.Bar.pack(pady=50)
         self.Bar.set(0)
-
+        self.Access_Gained.attributes("-topmost", True)        
+        # Brings to front
         self.Loading_Simulation()
 
     def Loading_Simulation(self, value=0):
@@ -385,6 +407,7 @@ class Login(ctk.CTkFrame):
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
 
     def Create_Login_Frame(self):
+        self.Check_if_Logged()
         Login_Label = ctk.CTkLabel(self, text="Login", width=147, height=58, **Styles.label_styles["title2"])
         Login_Label.place(x=293, y=20)
 
@@ -445,12 +468,87 @@ class Login(ctk.CTkFrame):
 
         self.Submit_Btn_warning = ctk.CTkLabel(self, text="", width=300, height=24, **Styles.label_styles["error_title"])
         self.Submit_Btn_warning.place(x=233, y=565)
-class Feedback(ctk.CTkFrame):
+class Report_Section(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.Username = ctk.StringVar()
         self.Report_Type = ctk.StringVar()
-        self.Feedback = ctk.StringVar()
-    
+        self.Report_Message = ""
+        self.Create_Report_Frame()
+    def Submit(self):
+        valid = True
+        if not Side_Functions.check_empty(self.Username, self.Warning_User, "⚠ Must Enter Username"):
+            valid = False
+            
+        if valid:
+            self.Check_if_sure()    
+    def Check_if_sure(self):
+        self.Sure_Windows = ctk.CTkToplevel()
+        self.Sure_Windows.geometry("400x250")
+        self.Sure_Windows.title("Are you sure?")
+        ctk.CTkLabel(self.Sure_Windows, text="Are you sure \nyou want to proceed?: ", **Styles.label_styles["subtitle2"]).pack(pady=10)
+        ctk.CTkButton(self.Sure_Windows, text="Yes", **Styles.button_styles["Small"], command=lambda: self.Insert_Report()).pack(padx=10, pady=10)
+        ctk.CTkButton(self.Sure_Windows, text="No", **Styles.button_styles["Small"], command= self.Sure_Windows.destroy).pack(padx=5, pady=5)
+        self.Sure_Windows.attributes("-topmost", True)
+    def Insert_Report(self):
+        self.Sure_Windows.destroy()
+        Cur_Feed_Repo.execute("INSERT INTO Users_Messages(Name, Type_Report, Report_Message) Values(?, ?, ?)", 
+                            (self.Username.get(), self.Report_Type.get(), self.Report_Message.get("1.0", "end-1c")))
+        Con_Feed_Repo.commit()
+        
+        Thanks_Top = ctk.CTkToplevel()
+        Thanks_Top.geometry("500x300")
+        Thanks_Top.title("Thanks...")
+        ctk.CTkLabel(Thanks_Top, text="Thanks for your time, \nyour problem will be investigated.", **Styles.label_styles["subtitle2"]).pack(pady=10)
+        Thanks_Top.after(2000, Thanks_Top.destroy)
+        Thanks_Top.attributes("-topmost", True)
+        
     def Create_Report_Frame(self):
-        pass
+        Title_Label = ctk.CTkLabel(self, text="Report Section", **Styles.label_styles["title1"])
+        Title_Label.place(x=231, y=20)
+        
+        Username_Label = ctk.CTkLabel(self, text="Username: ", **Styles.label_styles["subtitle2"])
+        Username_Label.place(x=280, y=97)
+        
+        Username_Entry = ctk.CTkEntry(self, **Styles.entry_styles["default"], width=230, height=40, textvariable=self.Username)
+        Username_Entry.place(x=280, y=130)
+        
+        self.Warning_User = ctk.CTkLabel(self, **Styles.label_styles["error_title"], text="")
+        self.Warning_User.place(x=517, y=135)
+        
+        Report_Sel_Label = ctk.CTkLabel(self, **Styles.label_styles["subtitle2"], text="Type of Report?: ")
+        Report_Sel_Label.place(x=278, y=189)
+        
+        Report_Sel_Cb = ctk.CTkComboBox(self, values=["Problem Signing In.",
+                                                    "Not letting me in even tho I have Stay Logged on.",
+                                                    "Not Correct Calculation.",
+                                                    "Wrong Data and not updating.",
+                                                    "The Program freezes When i click a button.",
+                                                    "Other."],
+                                            width=230,
+                                            height=40,
+                                            variable=self.Report_Type,
+                                            state="readonly",
+                                            border_color="#4A90E2",
+                                            bg_color="#2B2B2B",
+                                            dropdown_fg_color="#2B2B2B",
+                                            dropdown_text_color="white",
+                                            text_color="white",
+                                            button_color="grey",
+                                            font=("Lato", 20, "bold"),
+                                            dropdown_font=("Lato", 20, "bold"))
+        Report_Sel_Cb.place(x=280, y=222)
+        Report_Sel_Cb.set("Problem Signing In.")
+        
+        Report_Label = ctk.CTkLabel(self, text="Text report message (optional): ", **Styles.label_styles["subtitle2"])
+        Report_Label.place(x=218, y=280)
+        
+        self.Report_Message = ctk.CTkTextbox(self, **Styles.entry_styles["default"], width=410, height=200, )
+        self.Report_Message.place(x=195, y=310)
+        
+        Submit_Button = ctk.CTkButton(self, **Styles.button_styles["Big"], 
+                                    width=210, 
+                                    height=50,
+                                    text="Send",
+                                    command=lambda: self.Submit())
+        Submit_Button.place(x=290, y=530)
