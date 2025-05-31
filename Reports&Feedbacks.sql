@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS Users_Messages (
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT, 
+    Type_Report TEXT,
+    Report_Message TEXT DEFAULT NULL
+);
