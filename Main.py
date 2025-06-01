@@ -1,12 +1,9 @@
 import customtkinter as ctk
 import Styles
-import datetime
 import sqlite3
 import Side_Functions
 from First_Interface import Sign_Up, Login, Report_Section
 import os
-import json
-import sys
 from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics

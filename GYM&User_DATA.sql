@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS Users (
     Body_Height INTEGER,
     Activity TEXT,
     Age INTEGER,
-    Status TEXT
+    Gender TEXT
 );
 
