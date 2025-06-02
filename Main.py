@@ -3,6 +3,7 @@ import Styles
 import sqlite3
 import Side_Functions
 from First_Interface import Sign_Up, Login, Report_Section
+from Calorie_Fitness import Program_setUp
 import os
 from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
@@ -23,7 +24,7 @@ with open("Reports&Feedbacks.sql", "r") as query:
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
-class Main_Window_First_Interface(ctk.CTk):
+class Main_Window(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("800x600")
@@ -33,13 +34,14 @@ class Main_Window_First_Interface(ctk.CTk):
         self.Showing_Login = Login(self)
         self.Showing_Sign_Up = Sign_Up(self, self.Show_Login)
         self.Showing_Report = Report_Section(self)
+        self.Showing_Program = Program_setUp(self)
         
         self.Create_back_btn(self.Showing_Report, self.First_Interface_Frame, 20, 511)
         self.Create_back_btn(self.Showing_Login, self.Showing_Sign_Up, 20, 511)
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
-        self.Show_Page(self.First_Interface_Frame)
+        self.Show_Page(self.Showing_Program)
     def Create_First_InterFace(self):
         image_path = "Black Gym Icon.jpeg"
         pil_image = Image.open(image_path)
@@ -121,5 +123,5 @@ class Main_Window_First_Interface(ctk.CTk):
         ctk.CTkButton(self.Sure_Windows, text="No", **Styles.button_styles["Small"], command= self.Sure_Windows.destroy).pack(padx=5, pady=5)
         self.Sure_Windows.attributes("-topmost", True)
 
-Main = Main_Window_First_Interface()
+Main = Main_Window()
 Main.mainloop()
