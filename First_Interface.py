@@ -1,11 +1,8 @@
 import customtkinter as ctk
 import Styles
-import datetime
 import sqlite3
 import Side_Functions
 import os
-import json
-import sys
 
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
@@ -33,7 +30,7 @@ Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall(
 class Sign_Up(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
         super().__init__(master)
-        self.master = master
+        self.gender_var = ctk.StringVar(value="Male")
         self.switch_screen = switch_screen
         self.username = ctk.StringVar()
         self.password = ctk.StringVar()
@@ -275,8 +272,7 @@ class Sign_Up(ctk.CTkFrame):
         Age_Entry.place(x=581, y=404)
         self.age_warning = ctk.CTkLabel(self, text="", width=128, height=24, **Styles.label_styles["error_title"])
         self.age_warning.place(x=556, y=465)
-        
-        
+
         Age_Decrease = ctk.CTkButton(self,
                                             text="-",
                                             width=48,
