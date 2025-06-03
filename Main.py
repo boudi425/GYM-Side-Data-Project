@@ -31,7 +31,7 @@ class Main_Window(ctk.CTk):
         self.title("BLACK GYM!!")
         self.configure(fg_color="#2B2B2B")
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
-        self.Showing_Login = Login(self)
+        self.Showing_Login = Login(self, self.Show_Program)
         self.Showing_Sign_Up = Sign_Up(self, self.Show_Login)
         self.Showing_Report = Report_Section(self)
         self.Showing_Program = Program_setUp(self)
@@ -41,14 +41,14 @@ class Main_Window(ctk.CTk):
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
-        self.Show_Page(self.Showing_Program)
+        self.Show_Program()
     def Create_First_InterFace(self):
-        image_path = "Black Gym Icon.jpeg"
-        pil_image = Image.open(image_path)
+        #image_path = "Black Gym Icon.jpeg"
+        #pil_image = Image.open(image_path)
         
-        ctk_image = ctk.CTkImage(dark_image=pil_image, size=(150, 120))
-        image_label = ctk.CTkLabel(self, image=ctk_image, text="")
-        image_label.place(x=650, y=480)
+        #ctk_image = ctk.CTkImage(dark_image=pil_image, size=(150, 120))
+        #image_label = ctk.CTkLabel(self, image=ctk_image, text="")
+        #image_label.place(x=650, y=480)
         
         Title_Label = ctk.CTkLabel(self.First_Interface_Frame, 
                                 text="Welcome to THE BLACK GYM!!", 
@@ -100,13 +100,17 @@ class Main_Window(ctk.CTk):
                 widget.place_forget()
         Page.place(relx=0, rely=0, relwidth=1, relheight=1)
     def Create_back_btn(self, master, Frame, x, y):
-        back_btn = ctk.CTkButton(master, width=127, height=37, text="Back <-", 
+        back_btn = ctk.CTkButton(master, width=127, height=37, text="Back ⬅", 
                                 **Styles.button_styles["Small"],
                                 command=lambda: self.Show_Page(Frame))
         back_btn.place(x=x, y=y)
         
     def Show_Login(self):
         self.Show_Page(self.Showing_Login)
+        
+    def Show_Program(self):
+        self.geometry("1000x600")
+        self.Show_Page(self.Showing_Program)
         
     def Destroy_Everything(self, additional_Top):
         additional_Top.destroy()

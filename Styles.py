@@ -51,12 +51,18 @@ label_styles = {
     "subtitle2": {
         "text_color": "#e4e152",
         "corner_radius": 3,
-        "font": ("Lato", 25, "bold")
+        "font": ("Lato", 25, "bold"),
+        "fg_color": "transparent"
     },
     "error_title": {
         "text_color": "#FF0000",
         "corner_radius": 3,
         "font": ("Lato", 14, "bold")
+    },
+    "Question": {
+        "text_color": "#D0FF00",
+        "corner_radius": 8,
+        "font": ("Lato", 32, "bold")
     }
 }
 
@@ -78,5 +84,18 @@ checkBox = {
         "corner_radius": 5,
         "fg_color": "#37ADA7",
         "border_width": 0,
+    }
+}
+ComboBox = {
+    "Box1": {
+        "state": "readonly",
+        "border_color": "#4A90E2",
+        "bg_color": "#2B2B2B",
+        "dropdown_fg_color": "#2B2B2B",
+        "dropdown_text_color": "white",
+        "text_color": "white",
+        "button_color": "grey",
+        "font": ("Lato", 20, "bold"),
+        "dropdown_font": ("Lato", 20, "bold")
     }
 }
