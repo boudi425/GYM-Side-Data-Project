@@ -317,8 +317,9 @@ class Sign_Up(ctk.CTkFrame):
                                     command=self.Submit)
         Submit_Btn.place(relx=0.5, rely=0.9, anchor="center")
 class Login(ctk.CTkFrame):
-    def __init__(self, master):
+    def __init__(self, master, switch_screen=None):
         super().__init__(master)
+        self.switch_screen = switch_screen
         self.Email = ctk.StringVar()
         self.Password = ctk.StringVar()
         self.Stay_logged = ctk.BooleanVar()
@@ -401,6 +402,8 @@ class Login(ctk.CTkFrame):
             Loading_Text = ctk.CTkLabel(self.Access_Gained, text="Entering Main Menu...", **Styles.label_styles["subtitle2"])
             Loading_Text.pack(pady=10)
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
+            if self.switch_screen:
+                self.switch_screen()
 
     def Create_Login_Frame(self):
         self.Check_if_Logged()
