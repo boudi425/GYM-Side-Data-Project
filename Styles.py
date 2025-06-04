@@ -95,7 +95,7 @@ ComboBox = {
         "dropdown_text_color": "white",
         "text_color": "white",
         "button_color": "grey",
-        "font": ("Lato", 20, "bold"),
-        "dropdown_font": ("Lato", 20, "bold")
+        "font": ("Lato", 32, "bold"),
+        "dropdown_font": ("Lato", 32, "bold")
     }
 }
