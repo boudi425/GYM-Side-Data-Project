@@ -24,16 +24,31 @@ class Program_setUp(ctk.CTkFrame):
         self.Create_Details_Frame()
         
     def Submit(self):
-        pass
-    
+        valid = True
+        
+        if not Side_Functions.check_empty(self.target_weight, self.Submit_Button_warning, "⚠ Must Enter A Number"):
+            valid = False
+        elif int(self.target_weight) < 0:
+            valid = False
+            self.Submit_Button_warning.configure(text="⚠ Negative Numbers \n aren't allowed.")
+        if valid:
+            self.Check_if_Sure()
+    #I need a function or a method that can store the vars always and use it when needed, Luckily i did find one
     def Insert_Data(self):
+        Cur.execute("SELECT Body_Weight, Body_Height, Activity, Age FROM Users WHERE Email = ?", ())
         pass
     
     def Check_if_Sure(self):
-        pass
+        self.Sure_Windows = ctk.CTkToplevel()
+        self.Sure_Windows.geometry("400x250")
+        self.Sure_Windows.title("Are you sure?")
+        ctk.CTkLabel(self.Sure_Windows, text="Are you sure \nyou want to proceed?: ", **Styles.label_styles["subtitle2"]).pack(pady=10)
+        ctk.CTkButton(self.Sure_Windows, text="Yes", **Styles.button_styles["Small"], command=lambda: self.Insert_Data()).pack(padx=10, pady=10)
+        ctk.CTkButton(self.Sure_Windows, text="No", **Styles.button_styles["Small"], command= self.Sure_Windows.destroy).pack(padx=5, pady=5)
+        self.Sure_Windows.attributes("-topmost", True)
     
     def Create_Details_Frame(self):
-        bkg_Image = ctk.CTkImage(dark_image=Image.open("GYM_Background.jpeg"), size=(1000, 700))
+        bkg_Image = ctk.CTkImage(dark_image=Image.open("Black GYM Background.jpeg"), size=(1000, 700))
         
         bg_label = ctk.CTkLabel(self, image=bkg_Image, text="", fg_color="transparent")
         bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -42,7 +57,7 @@ class Program_setUp(ctk.CTkFrame):
                                    **Styles.label_styles["subtitle2"])
         Title_Label.place(x=350, y=10)
         
-        gender_label = ctk.CTkLabel(self, text="What is your gender", **Styles.label_styles["Question"])
+        gender_label = ctk.CTkLabel(self, text="What is your gender?", **Styles.label_styles["Question"])
         gender_label.place(x=80, y=89)
         
         gender_cb = ctk.CTkComboBox(self, variable=self.gender, values=["Male", "Female"], 
@@ -82,7 +97,7 @@ class Program_setUp(ctk.CTkFrame):
         Diet_Goal_Cb.place(x=92, y=289)
         Diet_Goal_Cb.set("Maintain My Weight")
         
-        Diet_target_Label = ctk.CTkLabel(self, text="What is your target weight", **Styles.label_styles["Question"])
+        Diet_target_Label = ctk.CTkLabel(self, text="What is your target weight?", **Styles.label_styles["Question"])
         Diet_target_Label.place(x=50, y=360)
         
         Diet_Target_Entry = ctk.CTkEntry(self, textvariable=self.target_weight, **Styles.entry_styles["default"], 
@@ -112,4 +127,38 @@ class Program_setUp(ctk.CTkFrame):
                                                                                     width=307,
                                                                                     height=52)
         Days_off_Cb.place(x=541, y=171)
+        Days_off_Cb.set("Cardio with some stretches")
+        
+        Intensity_Label = ctk.CTkLabel(self, text="Which intensity you will \n find it best for you?: ", **Styles.label_styles["Question"])
+        Intensity_Label.place(x=523, y=236)
+        
+        Intensity_Cb = ctk.CTkComboBox(self, variable=self.intensity_Level, 
+                                    values=["Moderate Intensity",
+                                            "High Intensity",
+                                            "Low Intensity"],
+                                    width=307, 
+                                    height=52,
+                                    **Styles.ComboBox["Box1"])
+        Intensity_Cb.place(x=536, y=326)
+        Intensity_Cb.set("Moderate Intensity")
+        
+        Experience_Level_Label = ctk.CTkLabel(self, text="What is your Experience Level?:", **Styles.label_styles["Question"])
+        Experience_Level_Label.place(x=476, y=394)
+        
+        Experience_Level_Cb = ctk.CTkComboBox(self, variable=self.Experience_Level, values=["Standard", "Beginner", "PRO", "Know a bit"],
+                                            width=307,
+                                            height=52,
+                                            **Styles.ComboBox["Box1"])
+        Experience_Level_Cb.place(x=536, y=452)
+        Experience_Level_Cb.set("Beginner")
+        
+        Submit_Button = ctk.CTkButton(self, text="SUBMIT", width=238, height=50, 
+                                    **Styles.button_styles["Small"], 
+                                    command=lambda: self.Submit())
+        Submit_Button.place(x=557, y=530)
+        
+        self.Submit_Button_warning = ctk.CTkLabel(self, text="", **Styles.label_styles["error_title"])
+        self.Submit_Button_warning.place(x=826, y=546)
+        
+        
         
