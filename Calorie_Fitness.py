@@ -2,9 +2,11 @@ import customtkinter as ctk
 import sqlite3
 import Styles
 import Side_Functions
+import json
 import os
 import math
 from PIL import Image
+from User_session import save_session, load_session, user_session
 #Starting the part 2 from the project 
 Con = sqlite3.connect("Users_Data.db")
 Cur = Con.cursor()
@@ -12,8 +14,9 @@ with open("GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
 
 class Program_setUp(ctk.CTkFrame):
-    def __init__(self, master):
+    def __init__(self, master, switch_screen=None):
         super().__init__(master)
+        self.switch_screen = switch_screen
         self.Diet_Goal = ctk.StringVar()
         self.target_weight = ctk.IntVar()
         self.gender = ctk.StringVar()
@@ -28,16 +31,40 @@ class Program_setUp(ctk.CTkFrame):
         
         if not Side_Functions.check_empty(self.target_weight, self.Submit_Button_warning, "⚠ Must Enter A Number"):
             valid = False
-        elif int(self.target_weight) < 0:
+        elif self.target_weight.get() < 0:
             valid = False
             self.Submit_Button_warning.configure(text="⚠ Negative Numbers \n aren't allowed.")
         if valid:
             self.Check_if_Sure()
-    #I need a function or a method that can store the vars always and use it when needed, Luckily i did find one
+            
     def Insert_Data(self):
-        Cur.execute("SELECT Body_Weight, Body_Height, Activity, Age FROM Users WHERE Email = ?", ())
-        pass
-    
+        self.Sure_Windows.destroy()
+        Data_load = load_session()
+        Cur.execute("""INSERT INTO Program_Users(
+            Name,
+            Gender,
+            Diet_Goal,
+            Target_Weight,
+            Training_Days,
+            Not_Active_Days,
+            Intensity_Level,
+            Experience
+            ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)""", 
+            (Data_load["name"], self.gender.get(), self.Diet_Goal.get(), self.target_weight.get(), self.Training_Days_Ava.get(),
+            self.Days_Off_Activity.get(), self.intensity_Level.get(), self.Experience_Level.get()))
+        Con.commit()
+        choice = self.Program_Choice()
+        Data = self.Program_Calc()
+        #return Pr_BMR, standard, Final_result, Program
+        Cur.execute("INSERT INTO Program_Data(Name, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
+                    (Data_load["name"], *Data, choice))       
+        Con.commit()
+        
+    def switch_page(self):
+        self.Program_Choice_Window.destroy()
+        if self.switch_screen:
+            self.switch_screen()
+            
     def Check_if_Sure(self):
         self.Sure_Windows = ctk.CTkToplevel()
         self.Sure_Windows.geometry("400x250")
@@ -47,6 +74,103 @@ class Program_setUp(ctk.CTkFrame):
         ctk.CTkButton(self.Sure_Windows, text="No", **Styles.button_styles["Small"], command= self.Sure_Windows.destroy).pack(padx=5, pady=5)
         self.Sure_Windows.attributes("-topmost", True)
     
+    def Get_Activity(self):
+        Data_load = load_session()
+        """_summary_
+        Basal Metabolic Rate (BMR)", 
+                                                    "Sedentary: little or no exercise",
+                                                    "Light: exercise 1-3 times/week",
+                                                    "Moderate: exercise 4-5 times/week",
+                                                    "Active: daily exercise or intense exercise 3-4 times/week",
+                                                    "Very Active: intense exercise 6-7 times/week",
+                                                    "Extra Active: very intense exercise daily, or physical job
+        """
+        if Data_load["Activity"] == "Basal Metabolic Rate (BMR)":
+            return None
+        elif Data_load["Activity"] == "Sedentary: little or no exercise":
+            return 1.2
+        elif Data_load["Activity"] == "Light: exercise 1-3 times/week":
+            return 1.375
+        elif Data_load["Activity"] == "Moderate: exercise 4-5 times/week":
+            return 1.55
+        elif Data_load["Activity"] == "Active: daily exercise or intense exercise 3-4 times/week":
+            return 1.65
+        elif Data_load["Activity"] == "Very Active: intense exercise 6-7 times/week":
+            return 1.725
+        elif Data_load["Activity"] == "Extra Active: very intense exercise daily, or physical job":
+            return 1.9
+        else:
+            print("Hmm, What in the actual Python is this?")
+    def Program_Choice(self, choice=True):
+            self.Program_Choice_Window = ctk.CTkToplevel()
+            self.Program_Choice_Window.geometry("700x250")
+            self.Program_Choice_Window.title("Program Choice")
+            Exp_Message = ""
+            if self.Experience_Level.get() == "Standard":
+                Exp_Message = "You know well, \n Do you Wish That we do your Program?"
+            elif self.Experience_Level.get() == "Beginner":
+                Exp_Message = "You are a beginner, Don't Worry we can Help \n You Can click Yes if you want us to make you the Program"
+            elif self.Experience_Level.get() == "PRO":
+                Exp_Message = "You are a PRO,\nIf you want us to make your Program Click Yes!"
+            elif self.Experience_Level.get() == "Know a bit":
+                Exp_Message = "You know a bit,\nWell then if you need more help Click Yes"
+                
+            ctk.CTkLabel(self.Program_Choice_Window, text=Exp_Message, **Styles.label_styles["subtitle2"]).pack(pady=10)
+            Choice = ctk.StringVar()
+            Choice_Cb = ctk.CTkComboBox(self.Program_Choice_Window, variable=Choice, values=["Yes Give me the Program", "No Thanks I want to make my own"], **Styles.ComboBox["Box1"],
+                                        width=500)
+            Choice_Cb.pack()
+            Choice_Cb.set("Yes Give me the Program")
+            Button = ctk.CTkButton(self.Program_Choice_Window, text="Choose", **Styles.button_styles["Small"], command=lambda: self.switch_page())
+            Button.pack(padx=10, pady=15)
+            if Choice_Cb.get() == "Yes Give me the Program":
+                choice = True
+                return choice
+            elif Choice_Cb.get() == "No Thanks I want to make my own":
+                choice = False
+                return choice
+
+            self.Program_Choice_Window.attributes("-topmost", True)
+            self.Program_Choice_Window.grab_set()
+            self.Program_Choice_Window.wait_window()
+
+    def Program_Calc(self):
+        Data_Load = load_session()
+        Program_Data_load = Cur.execute("SELECT Gender, Diet_Goal, Target_Weight, Training_Days, Not_Active_Days, Intensity_Level, Experience FROM Program_Users WHERE Name = ?", (Data_Load["name"],)).fetchone()
+        Activity_Num = self.Get_Activity()
+        def BMR_Calc():
+            Pr_BMR = 0
+            if Program_Data_load[0] == "Male":
+                Pr_BMR += 10 * Data_Load["weight"] + 6.25 * Data_Load["height"] - 5 * Data_Load["age"] + 5
+                return round(Pr_BMR)
+            elif Program_Data_load[0] == "Female":
+                Pr_BMR += 10 * Data_Load["weight"] + 6.25 * Data_Load["height"] - 5 * Data_Load["age"] - 161        
+                return round(Pr_BMR)
+        def TDEE_Calc():
+            TDEE_Pr = 0
+            Bmr = BMR_Calc()
+            if Activity_Num:
+                TDEE_Pr += Bmr * Activity_Num
+                return round(TDEE_Pr)
+            else:
+                return Bmr
+            
+        def Calories_Table_Calc():
+            default = TDEE_Calc() 
+            if self.Diet_Goal.get() == "Maintain My Weight":
+                return default
+            elif self.Diet_Goal.get() == "Lose Weight":
+                standard = [default - 250, default - 500, default - 750]
+                return standard
+            elif self.Diet_Goal.get() == "Gain Weight":
+                standard = [default + 250, default + 500, default + 1000]
+                return standard
+        BMR = BMR_Calc()
+        TDEE = TDEE_Calc()
+        CALORIES = Calories_Table_Calc()
+        
+        return BMR, json.dumps(CALORIES), TDEE
+        
     def Create_Details_Frame(self):
         bkg_Image = ctk.CTkImage(dark_image=Image.open("Black GYM Background.jpeg"), size=(1000, 700))
         
@@ -159,6 +283,3 @@ class Program_setUp(ctk.CTkFrame):
         
         self.Submit_Button_warning = ctk.CTkLabel(self, text="", **Styles.label_styles["error_title"])
         self.Submit_Button_warning.place(x=826, y=546)
-        
-        
-        

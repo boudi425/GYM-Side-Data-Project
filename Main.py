@@ -6,6 +6,7 @@ from First_Interface import Sign_Up, Login, Report_Section
 from Calorie_Fitness import Program_setUp
 import os
 from PIL import Image
+from Dashboard import mainMenu
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
@@ -33,16 +34,21 @@ class Main_Window(ctk.CTk):
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
         self.Showing_Login = Login(self, self.Show_Program)
         self.Showing_Sign_Up = Sign_Up(self, self.Show_Login)
+        self.Showing_mainMenu = mainMenu(self)
         self.Showing_Report = Report_Section(self)
-        self.Showing_Program = Program_setUp(self)
+        self.Showing_Program = Program_setUp(self, self.Show_mainMenu)
         
         self.Create_back_btn(self.Showing_Report, self.First_Interface_Frame, 20, 511)
         self.Create_back_btn(self.Showing_Login, self.Showing_Sign_Up, 20, 511)
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
-        self.Show_Program()
+        self.Show_Page(self.First_Interface_Frame)
     def Create_First_InterFace(self):
+        bkg_Image = ctk.CTkImage(dark_image=Image.open("First_BG.jpeg"), size=(800, 600))
+        
+        bg_label = ctk.CTkLabel(self.First_Interface_Frame, image=bkg_Image, text="", fg_color="transparent")
+        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
         #image_path = "Black Gym Icon.jpeg"
         #pil_image = Image.open(image_path)
         
@@ -111,6 +117,10 @@ class Main_Window(ctk.CTk):
     def Show_Program(self):
         self.geometry("1000x600")
         self.Show_Page(self.Showing_Program)
+    
+    def Show_mainMenu(self):
+        self.geometry("1000x700")
+        self.Show_Page(self.Showing_mainMenu)
         
     def Destroy_Everything(self, additional_Top):
         additional_Top.destroy()

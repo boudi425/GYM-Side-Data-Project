@@ -1,21 +1,23 @@
 import json
 
 class user_session():
-    def __init__(self, User_ID, Email, name):
-        self.User_ID = User_ID
-        self.Email = Email
+    def __init__(self, name, age, weight, height, Activity):
         self.name = name
+        self.age = age
+        self.weight = weight
+        self.height = height
+        self.Activity = Activity
         
 
 
 def save_session(session):
     with open("Session.json", "w") as f:
-        json.dumps(session.__dict__, f)
+        json.dump(session.__dict__, f)
 
 def load_session():
     try:
         with open("session.json", "r") as f:
-            data = json.loads(f)
-            return user_session(**data)
+            data = json.load(f)
+            return data
     except FileNotFoundError:
         return None
