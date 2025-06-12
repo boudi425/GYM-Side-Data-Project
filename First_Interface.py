@@ -4,6 +4,7 @@ import sqlite3
 import Side_Functions
 import os
 from User_session import user_session, save_session, load_session
+from PIL import Image
 
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
@@ -25,9 +26,6 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 ctk.set_window_scaling(1)
 ctk.set_widget_scaling(1)
-Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
-Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
-
 class Sign_Up(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
         super().__init__(master)
@@ -40,7 +38,6 @@ class Sign_Up(ctk.CTkFrame):
         self.body_Height = ctk.StringVar(value=0)
         self.age = ctk.StringVar(value=0)
         self.Activity = ctk.StringVar(value="Moderate: exercise 4-5 times/week")
-        self.Status = False
         self.Create_Sign_Up_Frame()
         
     def Error_Popup_Window(self, Label_Text, Button_Text):
@@ -51,6 +48,9 @@ class Sign_Up(ctk.CTkFrame):
         ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy)
 
     def Submit(self):
+        Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
+        Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
+        
         valid = True
         
         if not Side_Functions.check_empty(self.username, self.username_warning, "⚠ Username required"):
@@ -99,8 +99,6 @@ class Sign_Up(ctk.CTkFrame):
             valid = False
         if valid:
             self.SignUp_Data_Management()
-            if self.switch_screen:
-                self.switch_screen()
 
     def SignUp_Data_Management(self):
         Cur.execute("""INSERT INTO Users(
@@ -110,14 +108,15 @@ class Sign_Up(ctk.CTkFrame):
                     Body_Weight, 
                     Body_Height, 
                     Activity, 
-                    Age, 
-                    Status) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+                    Age) VALUES(?, ?, ?, ?, ?, ?, ?)
                     """, (self.username.get(), self.password.get(), self.email.get()
                         , self.body_Weight.get(), self.body_Height.get(),
-                        self.age.get(), self.Activity.get(), self.Status))
+                        int(self.age.get()), self.Activity.get()))
         Con.commit()
-    
+        if self.switch_screen:
+                self.switch_screen()
     def Create_Sign_Up_Frame(self):
+        
         Title_Label = ctk.CTkLabel(self, 
                                 text="Sign Up To Experience All Our WORK!",
                                 **Styles.label_styles["title2"])
@@ -333,19 +332,21 @@ class Login(ctk.CTkFrame):
             with open("auth_token.txt", "r+") as f:
                 token = f.read().strip()
                 if token:
-                    already_logged_window = ctk.CTkToplevel()
-                    already_logged_window.geometry("300x150")
-                    already_logged_window.title("Wish to proceed?")
-                    ctk.CTkLabel(already_logged_window, text="You already logged, Continue?", **Styles.label_styles["subtitle2"]).pack(pady=10)
-                    ctk.CTkButton(already_logged_window, text="Yes", **Styles.button_styles["Small"], command=lambda: self.Access()).pack(padx=10, pady=10)
-                    ctk.CTkButton(already_logged_window, text="No", **Styles.button_styles["Small"], command=lambda: self.Create_Login_Frame()).pack(padx=5, pady=5)
-                    already_logged_window.attributes("-topmost", True)
+                    self.Check_if_logged_window = ctk.CTkToplevel()
+                    self.Check_if_logged_window.geometry("400x250")
+                    self.Check_if_logged_window.title("Wish to proceed?")
+                    ctk.CTkLabel(self.Check_if_logged_window, text="You already logged, Continue?", **Styles.label_styles["subtitle2"]).pack(pady=10)
+                    ctk.CTkButton(self.Check_if_logged_window, text="Yes", **Styles.button_styles["Small"], command=lambda: self.Access()).pack(padx=10, pady=10)
+                    ctk.CTkButton(self.Check_if_logged_window, text="No", **Styles.button_styles["Small"], command=lambda: self.Check_if_logged_window.destroy()).pack(padx=5, pady=5)
+                    self.Check_if_logged_window.attributes("-topmost", True)
                 else: 
                     self.Create_Login_Frame()
-        except:
-            None
+        except FileNotFoundError:
+            return None
                 
     def Submit(self):
+        Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
+
         valid = True
         self.Email_warning.configure(text="")
         self.Password_warning.configure(text="")
@@ -374,16 +375,32 @@ class Login(ctk.CTkFrame):
         if valid:
             # Stay Logged Token
             if self.Stay_logged.get():
+                Cur.execute("PRAGMA table_info(Users);")
+                columns = [column[1] for column in Cur.fetchall()]
+
+                if "token" not in columns:
+                    Cur.execute("ALTER TABLE Users ADD COLUMN token TEXT;")
+                    Con.commit()
+                
                 token = Side_Functions.generate_token()
                 with open("auth_token.txt", "w") as f:
                     f.write(token)
                 Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
                 Con.commit()
-
+            user_Data = Cur.execute("SELECT Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
+            result = user_Data.fetchone()
+            
+            session = user_session(*result)
+            save_session(session)
+            
             self.destroy()
             self.Access()
 
     def Access(self):
+        try:
+            self.Check_if_logged_window.destroy()
+        except AttributeError:
+            return None
         self.Access_Gained = ctk.CTkToplevel()
         self.Access_Gained.geometry("400x200")
         self.Access_Gained.title("Processing...")
