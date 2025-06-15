@@ -1,23 +1,30 @@
-import customtkinter as ctk
-import Styles
-import sqlite3
-import Side_Functions
-from First_Interface import Sign_Up, Login, Report_Section
-from Calorie_Fitness import Program_setUp
 import os
+import sys
+from path_setup import add_frames_path, get_data_path
+add_frames_path()
+add_frames_path("Data_Side")
+
+
+import customtkinter as ctk
+import Styles # type: ignore
+import sqlite3
+import Side_Functions # type: ignore
+from First_Interface import Sign_Up, Login, Report_Section # type: ignore
+from Calorie_Fitness import Program_setUp # type: ignore
 from PIL import Image
-from Dashboard import mainMenu
+from Dashboard import mainMenu # type: ignore
+
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
-Con = sqlite3.connect("Users_Data.db")
+Con = sqlite3.connect(get_data_path("Users_Data.db"))
 Cur = Con.cursor()
-with open("GYM&User_DATA.sql", "r") as Table_Query:
+with open("Data_Side/GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
     
-Con_Feed_Repo = sqlite3.connect("Reports&Feedbacks.db")
+Con_Feed_Repo = sqlite3.connect(get_data_path("Reports&Feedbacks.db"))
 Cur_Feed_Repo = Con_Feed_Repo.cursor()
-with open("Reports&Feedbacks.sql", "r") as query:
+with open("Data_Side/Reports&Feedbacks.sql", "r") as query:
     Cur_Feed_Repo.executescript(query.read())
 #First: Sign up Interface/Class
 
@@ -44,8 +51,9 @@ class Main_Window(ctk.CTk):
         self.Create_First_InterFace()
         
         self.Show_Page(self.First_Interface_Frame)
+        self.protocol("WM_DELETE_WINDOW", Side_Functions.cleanup_exit)
     def Create_First_InterFace(self):
-        bkg_Image = ctk.CTkImage(dark_image=Image.open("First_BG.jpeg"), size=(800, 600))
+        bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/First_BG.jpeg"), size=(800, 600))
         
         bg_label = ctk.CTkLabel(self.First_Interface_Frame, image=bkg_Image, text="", fg_color="transparent")
         bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)

@@ -1,16 +1,19 @@
+import os
+import sys
+from path_setup import get_data_path
+
 import customtkinter as ctk
 import sqlite3
 import Styles
 import Side_Functions
 import json
 import os
-import math
 from PIL import Image
 from User_session import save_session, load_session, user_session
 #Starting the part 2 from the project 
-Con = sqlite3.connect("Users_Data.db")
+Con = sqlite3.connect(get_data_path("Users_Data.db"))
 Cur = Con.cursor()
-with open("GYM&User_DATA.sql", "r") as Table_Query:
+with open("Data_Side/GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
 
 class Program_setUp(ctk.CTkFrame):
@@ -172,7 +175,7 @@ class Program_setUp(ctk.CTkFrame):
         return BMR, json.dumps(CALORIES), TDEE
         
     def Create_Details_Frame(self):
-        bkg_Image = ctk.CTkImage(dark_image=Image.open("Black GYM Background.jpeg"), size=(1000, 700))
+        bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Black GYM Background.jpeg"), size=(1000, 700))
         
         bg_label = ctk.CTkLabel(self, image=bkg_Image, text="", fg_color="transparent")
         bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)

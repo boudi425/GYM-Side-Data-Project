@@ -1,3 +1,7 @@
+import os
+import sys
+from path_setup import get_data_path
+
 import customtkinter as ctk
 import Styles
 import sqlite3
@@ -9,14 +13,14 @@ from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
-Con = sqlite3.connect("Users_Data.db")
+Con = sqlite3.connect(get_data_path(get_data_path("Users_Data.db")))
 Cur = Con.cursor()
-with open("GYM&User_DATA.sql", "r") as Table_Query:
+with open("Data_Side/GYM&User_DATA.sql", "r") as Table_Query:
     Cur.executescript(Table_Query.read())
     
-Con_Feed_Repo = sqlite3.connect("Reports&Feedbacks.db")
+Con_Feed_Repo = sqlite3.connect(get_data_path("Reports_Feedbacks.db"))
 Cur_Feed_Repo = Con_Feed_Repo.cursor()
-with open("Reports&Feedbacks.sql", "r") as query:
+with open("Data_Side/Reports&Feedbacks.sql", "r") as query:
     Cur.executescript(query.read())
 #First: Sign up Interface/Class
 
@@ -329,9 +333,9 @@ class Login(ctk.CTkFrame):
     
     def Check_if_Logged(self):
         try:
-            with open("auth_token.txt", "r+") as f:
-                token = f.read().strip()
-                if token:
+            with open("User_Out_Data/auth_token.txt", "r+") as f:
+                self.token = f.read().strip()
+                if self.token:
                     self.Check_if_logged_window = ctk.CTkToplevel()
                     self.Check_if_logged_window.geometry("400x250")
                     self.Check_if_logged_window.title("Wish to proceed?")
@@ -383,7 +387,7 @@ class Login(ctk.CTkFrame):
                     Con.commit()
                 
                 token = Side_Functions.generate_token()
-                with open("auth_token.txt", "w") as f:
+                with open("User_Out_Data/auth_token.txt", "w") as f:
                     f.write(token)
                 Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
                 Con.commit()
@@ -399,6 +403,8 @@ class Login(ctk.CTkFrame):
     def Access(self):
         try:
             self.Check_if_logged_window.destroy()
+            result = Cur.execute("SELECT Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,)).fetchone()
+            save_session(*result)
         except AttributeError:
             return None
         self.Access_Gained = ctk.CTkToplevel()

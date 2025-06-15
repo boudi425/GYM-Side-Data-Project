@@ -11,12 +11,12 @@ class user_session():
 
 
 def save_session(session):
-    with open("Session.json", "w") as f:
+    with open("User_Out_Data/Session.json", "w") as f:
         json.dump(session.__dict__, f)
 
 def load_session():
     try:
-        with open("session.json", "r") as f:
+        with open("User_Out_Data/Session.json", "r") as f:
             data = json.load(f)
             return data
     except FileNotFoundError:
