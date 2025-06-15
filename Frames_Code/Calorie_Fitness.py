@@ -1,7 +1,6 @@
 import os
 import sys
 from path_setup import get_data_path
-
 import customtkinter as ctk
 import sqlite3
 import Styles
@@ -10,6 +9,7 @@ import json
 import os
 from PIL import Image
 from User_session import save_session, load_session, user_session
+#Importing the most needed Classes!
 #Starting the part 2 from the project 
 Con = sqlite3.connect(get_data_path("Users_Data.db"))
 Cur = Con.cursor()
@@ -18,6 +18,8 @@ with open("Data_Side/GYM&User_DATA.sql", "r") as Table_Query:
 
 class Program_setUp(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
+        #All in one this time but it work perfectly! 
+        # Setting up the vars!
         super().__init__(master)
         self.switch_screen = switch_screen
         self.Diet_Goal = ctk.StringVar()
@@ -30,6 +32,7 @@ class Program_setUp(ctk.CTkFrame):
         self.Create_Details_Frame()
         
     def Submit(self):
+        #Checking if everything is nicely here!
         valid = True
         
         if not Side_Functions.check_empty(self.target_weight, self.Submit_Button_warning, "⚠ Must Enter A Number"):
@@ -41,6 +44,7 @@ class Program_setUp(ctk.CTkFrame):
             self.Check_if_Sure()
             
     def Insert_Data(self):
+        #Insert The data gotten from the user!
         self.Sure_Windows.destroy()
         Data_load = load_session()
         Cur.execute("""INSERT INTO Program_Users(
@@ -56,8 +60,13 @@ class Program_setUp(ctk.CTkFrame):
             (Data_load["name"], self.gender.get(), self.Diet_Goal.get(), self.target_weight.get(), self.Training_Days_Ava.get(),
             self.Days_Off_Activity.get(), self.intensity_Level.get(), self.Experience_Level.get()))
         Con.commit()
+        #This one is a bit tricky but let me explain we are going to get the program choice which is True or False
+        #Then depending on this it will give us the Option of doing the user program or not but because it was hard to put this function
+        #In the main function i made it alone, I may fixed it later but all we need to know that this function returns True or False depending in what he chose
+        
         choice = self.Program_Choice()
         Data = self.Program_Calc()
+        #This Function returns every needed data , we will explain how we get it down!
         #return Pr_BMR, standard, Final_result, Program
         Cur.execute("INSERT INTO Program_Data(Name, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
                     (Data_load["name"], *Data, choice))       
