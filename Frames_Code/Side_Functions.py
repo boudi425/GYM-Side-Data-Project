@@ -1,8 +1,6 @@
 import hashlib
 import difflib
-
-import difflib
-
+import os
 import secrets
 
 def generate_token():
@@ -39,3 +37,8 @@ def hash_password(password):
 
 def verify_password(input_password, stored_hash):
     return hash_password(input_password) == stored_hash  # Compare hashes
+
+def cleanup_exit():
+    if os.path.exists("User_Out_Data/Session.json"):
+        os.remove("User_Out_Data/Session.json")
+    
