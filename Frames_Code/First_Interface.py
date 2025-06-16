@@ -1,14 +1,13 @@
 import os
 import sys
 from path_setup import get_data_path
-
 import customtkinter as ctk
 import Styles
 import sqlite3
 import Side_Functions
-import os
 from User_session import user_session, save_session, load_session
 from PIL import Image
+#Importing Main Modules needed!
 
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
@@ -32,6 +31,7 @@ ctk.set_window_scaling(1)
 ctk.set_widget_scaling(1)
 class Sign_Up(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
+        #Setting up the main vars needed for the Frame/Class
         super().__init__(master)
         self.gender_var = ctk.StringVar(value="Male")
         self.switch_screen = switch_screen
@@ -45,6 +45,7 @@ class Sign_Up(ctk.CTkFrame):
         self.Create_Sign_Up_Frame()
         
     def Error_Popup_Window(self, Label_Text, Button_Text):
+        #Not Used but here for any thing happened that is not expected as errors
         root = ctk.CTkToplevel()
         root.geometry("250x150")
         root.title("Error")
@@ -52,6 +53,7 @@ class Sign_Up(ctk.CTkFrame):
         ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy)
 
     def Submit(self):
+        #this is the main logic start up function which handles probably most of the errors 
         Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
         Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
         
@@ -102,9 +104,10 @@ class Sign_Up(ctk.CTkFrame):
             self.age_warning.configure(text="⚠ Negative Numbers \naren't allowed")
             valid = False
         if valid:
-            self.SignUp_Data_Management()
+            self.SignUp_Data_Management() # After checking ava data or empty fields We can now safely inset the data!
 
     def SignUp_Data_Management(self):
+        # Just inserting the Data!
         Cur.execute("""INSERT INTO Users(
                     Name, 
                     Password, 
@@ -118,9 +121,9 @@ class Sign_Up(ctk.CTkFrame):
                         int(self.age.get()), self.Activity.get()))
         Con.commit()
         if self.switch_screen:
-                self.switch_screen()
+                self.switch_screen() # If there is a screen which can be go to, Call the function which allow us doing it!
     def Create_Sign_Up_Frame(self):
-        
+        #Creating the frame Which contains every widgets needed (This is most one that takes code!)
         Title_Label = ctk.CTkLabel(self, 
                                 text="Sign Up To Experience All Our WORK!",
                                 **Styles.label_styles["title2"])
@@ -318,12 +321,14 @@ class Sign_Up(ctk.CTkFrame):
                                     width=270,
                                     height=60,
                                     **Styles.button_styles["Big"],
-                                    command=self.Submit)
+                                    command=self.Submit) # => Active the Submit button which handles the whole Frame logic!
         Submit_Btn.place(relx=0.5, rely=0.9, anchor="center")
 class Login(ctk.CTkFrame):
-    def __init__(self, master, switch_screen=None):
+    def __init__(self, master, switch_screen=None, Logged_switch_screen=None):
+        # Setting up the vars needed!
         super().__init__(master)
         self.switch_screen = switch_screen
+        self.Logged_switch_screen = Logged_switch_screen
         self.Email = ctk.StringVar()
         self.Password = ctk.StringVar()
         self.Stay_logged = ctk.BooleanVar()
@@ -332,8 +337,10 @@ class Login(ctk.CTkFrame):
         self.Create_Login_Frame()
     
     def Check_if_Logged(self):
+        #This is here because if we actually have a token just as we are going to explain down, We can just login in immediately 
         try:
             with open("User_Out_Data/auth_token.txt", "r+") as f:
+                #Trying to get the token and if there is an actual token we take it and show this top window asking if the user wants to proceed immediately 
                 self.token = f.read().strip()
                 if self.token:
                     self.Check_if_logged_window = ctk.CTkToplevel()
@@ -349,6 +356,7 @@ class Login(ctk.CTkFrame):
             return None
                 
     def Submit(self):
+        #Same as the sign up class
         Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
 
         valid = True
@@ -377,6 +385,8 @@ class Login(ctk.CTkFrame):
             valid = False
 
         if valid:
+            #this time is a bit different since we have an option that if it got activated it will insert a new file with a token
+            #So we simply check first if the token column is here if not , do one, if yes insert a token (The token is randomly generated!)
             # Stay Logged Token
             if self.Stay_logged.get():
                 Cur.execute("PRAGMA table_info(Users);")
@@ -394,14 +404,17 @@ class Login(ctk.CTkFrame):
             user_Data = Cur.execute("SELECT Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
             result = user_Data.fetchone()
             
-            session = user_session(*result)
-            save_session(session)
+            session = user_session(*result) 
+            save_session(session) # => Saving the data in a json file, so we can access it at anytime!
             
             self.destroy()
             self.Access()
 
     def Access(self):
+        #After we successfully logged in, We show this nice Window which is just a loading bar that take us to the Main Window!
         try:
+            # if accessed this window for check if sure window then destroy it and if this true then we logged from the token, this we can take the token
+            #and get the data from it and store it in the session.json file so we can access the data easily!
             self.Check_if_logged_window.destroy()
             result = Cur.execute("SELECT Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,)).fetchone()
             save_session(*result)
@@ -419,17 +432,28 @@ class Login(ctk.CTkFrame):
         self.Loading_Simulation()
 
     def Loading_Simulation(self, value=0):
+        #Nice bar which gets filled over time!
         if value <= 1:
             self.Bar.set(value)
             self.Access_Gained.after(100, lambda: self.Loading_Simulation(value + 0.02))
         else:
+            #After the progress bar is done, we can show this nice label to let the user know that the main window is getting launched!
             Loading_Text = ctk.CTkLabel(self.Access_Gained, text="Entering Main Menu...", **Styles.label_styles["subtitle2"])
             Loading_Text.pack(pady=10)
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
-            if self.switch_screen:
-                self.switch_screen()
+            try:
+                Data_Load = load_session()
+                Access = Cur.execute("SELECT Full_Logged FROM Users WHERE Name = ?", (Data_Load["name"],)).fetchone()
+                if Access:
+                    self.Logged_switch_screen()
+            except (TypeError, AttributeError) as e:
+                print(f"[Handled Error] {e}")
+                if self.switch_screen:
+                    self.switch_screen()
 
     def Create_Login_Frame(self):
+        # The login frame but before doing it we check if we are logged if not continue normally, If yes then see what the user wants first 
+        #If not create the login frame if yes then continue to the main menu
         self.Check_if_Logged()
         Login_Label = ctk.CTkLabel(self, text="Login", width=147, height=58, **Styles.label_styles["title2"])
         Login_Label.place(x=293, y=20)
@@ -486,19 +510,21 @@ class Login(ctk.CTkFrame):
         Stay_Logged_Text = ctk.CTkLabel(self, width=142, height=24, text="Stay Logged In", **Styles.label_styles["subtitle"])
         Stay_Logged_Text.place(x=274, y=428)
 
-        Submit_Btn = ctk.CTkButton(self, width=250, height=60, text="LOGIN", **Styles.button_styles["Big"], command=self.Submit)
+        Submit_Btn = ctk.CTkButton(self, width=250, height=60, text="LOGIN", **Styles.button_styles["Big"], command=self.Submit) # +> Activates the submit function!
         Submit_Btn.place(x=233, y=500)
 
         self.Submit_Btn_warning = ctk.CTkLabel(self, text="", width=300, height=24, **Styles.label_styles["error_title"])
         self.Submit_Btn_warning.place(x=233, y=565)
 class Report_Section(ctk.CTkFrame):
     def __init__(self, master):
+        #Setting up the main vars!
         super().__init__(master)
         self.Username = ctk.StringVar()
         self.Report_Type = ctk.StringVar()
         self.Report_Message = ""
         self.Create_Report_Frame()
     def Submit(self):
+        #Normal and easy this time!
         valid = True
         if not Side_Functions.check_empty(self.Username, self.Warning_User, "⚠ Must Enter Username"):
             valid = False
@@ -506,6 +532,7 @@ class Report_Section(ctk.CTkFrame):
         if valid:
             self.Check_if_sure()    
     def Check_if_sure(self):
+        #A normal check if sure window!
         self.Sure_Windows = ctk.CTkToplevel()
         self.Sure_Windows.geometry("400x250")
         self.Sure_Windows.title("Are you sure?")
@@ -514,11 +541,13 @@ class Report_Section(ctk.CTkFrame):
         ctk.CTkButton(self.Sure_Windows, text="No", **Styles.button_styles["Small"], command= self.Sure_Windows.destroy).pack(padx=5, pady=5)
         self.Sure_Windows.attributes("-topmost", True)
     def Insert_Report(self):
+        #Inserting the report !
         self.Sure_Windows.destroy()
         Cur_Feed_Repo.execute("INSERT INTO Users_Messages(Name, Type_Report, Report_Message) Values(?, ?, ?)", 
                             (self.Username.get(), self.Report_Type.get(), self.Report_Message.get("1.0", "end-1c")))
         Con_Feed_Repo.commit()
         
+        #Thanking the user in a nice Top window 
         Thanks_Top = ctk.CTkToplevel()
         Thanks_Top.geometry("500x300")
         Thanks_Top.title("Thanks...")
@@ -527,6 +556,7 @@ class Report_Section(ctk.CTkFrame):
         Thanks_Top.attributes("-topmost", True)
         
     def Create_Report_Frame(self):
+        #Creating the Report frame which is so simple
         Title_Label = ctk.CTkLabel(self, text="Report Section", **Styles.label_styles["title1"])
         Title_Label.place(x=231, y=20)
         
@@ -573,5 +603,5 @@ class Report_Section(ctk.CTkFrame):
                                     width=210, 
                                     height=50,
                                     text="Send",
-                                    command=lambda: self.Submit())
+                                    command=lambda: self.Submit()) # => Activating the submit function
         Submit_Button.place(x=290, y=530)
