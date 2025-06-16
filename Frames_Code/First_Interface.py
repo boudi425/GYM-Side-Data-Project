@@ -5,7 +5,6 @@ import customtkinter as ctk
 import Styles
 import sqlite3
 import Side_Functions
-import os
 from User_session import user_session, save_session, load_session
 from PIL import Image
 #Importing Main Modules needed!
@@ -325,10 +324,11 @@ class Sign_Up(ctk.CTkFrame):
                                     command=self.Submit) # => Active the Submit button which handles the whole Frame logic!
         Submit_Btn.place(relx=0.5, rely=0.9, anchor="center")
 class Login(ctk.CTkFrame):
-    def __init__(self, master, switch_screen=None):
+    def __init__(self, master, switch_screen=None, Logged_switch_screen=None):
         # Setting up the vars needed!
         super().__init__(master)
         self.switch_screen = switch_screen
+        self.Logged_switch_screen = Logged_switch_screen
         self.Email = ctk.StringVar()
         self.Password = ctk.StringVar()
         self.Stay_logged = ctk.BooleanVar()
@@ -441,8 +441,15 @@ class Login(ctk.CTkFrame):
             Loading_Text = ctk.CTkLabel(self.Access_Gained, text="Entering Main Menu...", **Styles.label_styles["subtitle2"])
             Loading_Text.pack(pady=10)
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
-            if self.switch_screen:
-                self.switch_screen()
+            try:
+                Data_Load = load_session()
+                Access = Cur.execute("SELECT Full_Logged FROM Users WHERE Name = ?", (Data_Load["name"],)).fetchone()
+                if Access:
+                    self.Logged_switch_screen()
+            except (TypeError, AttributeError) as e:
+                print(f"[Handled Error] {e}")
+                if self.switch_screen:
+                    self.switch_screen()
 
     def Create_Login_Frame(self):
         # The login frame but before doing it we check if we are logged if not continue normally, If yes then see what the user wants first 

@@ -12,8 +12,8 @@ import sqlite3
 import Side_Functions # type: ignore
 from First_Interface import Sign_Up, Login, Report_Section # type: ignore
 from Calorie_Fitness import Program_setUp # type: ignore
+from Menu import mainMenu # type: ignore
 from PIL import Image
-from Dashboard import mainMenu # type: ignore
 
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
@@ -41,7 +41,7 @@ class Main_Window(ctk.CTk):
         self.title("BLACK GYM!!")
         self.configure(fg_color="#2B2B2B")
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
-        self.Showing_Login = Login(self, self.Show_Program)
+        self.Showing_Login = Login(self, self.Show_Program, self.Show_mainMenu)
         self.Showing_Sign_Up = Sign_Up(self, self.Show_Login)
         self.Showing_mainMenu = mainMenu(self)
         self.Showing_Report = Report_Section(self)
@@ -52,7 +52,8 @@ class Main_Window(ctk.CTk):
         self.Create_back_btn(self.Showing_Sign_Up, self.First_Interface_Frame, 20, 511)
         self.Create_First_InterFace()
         
-        self.Show_Page(self.First_Interface_Frame)
+        #self.Show_Page(self.Showing_mainMenu)
+        self.Show_mainMenu()
         self.protocol("WM_DELETE_WINDOW", Side_Functions.cleanup_exit)
     def Create_First_InterFace(self):
         #Main Window Frame with Main four buttons
@@ -134,7 +135,7 @@ class Main_Window(ctk.CTk):
         self.Show_Page(self.Showing_Program)
     
     def Show_mainMenu(self):
-        self.geometry("1000x700")
+        self.geometry("1000x600")
         self.Show_Page(self.Showing_mainMenu)
         
     def Destroy_Everything(self, additional_Top):

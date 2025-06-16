@@ -6,7 +6,6 @@ import sqlite3
 import Styles
 import Side_Functions
 import json
-import os
 from PIL import Image
 from User_session import save_session, load_session, user_session
 #Importing the most needed Classes!
@@ -69,10 +68,19 @@ class Program_setUp(ctk.CTkFrame):
         #This Function returns every needed data , we will explain how we get it down!
         #return Pr_BMR, standard, Final_result, Program
         Cur.execute("INSERT INTO Program_Data(Name, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
-                    (Data_load["name"], *Data, choice))       
+                    (Data_load["name"], *Data, choice))    
         Con.commit()
         
+        Cur.execute("PRAGMA table_info(Users);")
+        columns = [column[1] for column in Cur.fetchall()]
+        
+        if "Full_Logged" not in columns:
+            Cur.execute("ALTER TABLE Users ADD COLUMN Full Logged TEXT;")
+            Con.commit()
+        Cur.execute("UPDATE Users Full Logged = ? WHERE Name = ?", (True ,Data_load["name"]))
+        
     def switch_page(self):
+        #Not using the try/expect stuff because this function doesn't get activated expect when it is needed! 
         self.Program_Choice_Window.destroy()
         if self.switch_screen:
             self.switch_screen()
@@ -87,6 +95,7 @@ class Program_setUp(ctk.CTkFrame):
         self.Sure_Windows.attributes("-topmost", True)
     
     def Get_Activity(self):
+        # This is a simple Function that loads the user data and get the activity rate (Digital Number)!
         Data_load = load_session()
         """_summary_
         Basal Metabolic Rate (BMR)", 
@@ -114,6 +123,7 @@ class Program_setUp(ctk.CTkFrame):
         else:
             print("Hmm, What in the actual Python is this?")
     def Program_Choice(self, choice=True):
+            #This is here for getting the true/false value so i can make the program if true and not if false
             self.Program_Choice_Window = ctk.CTkToplevel()
             self.Program_Choice_Window.geometry("700x250")
             self.Program_Choice_Window.title("Program Choice")
@@ -147,10 +157,13 @@ class Program_setUp(ctk.CTkFrame):
             self.Program_Choice_Window.wait_window()
 
     def Program_Calc(self):
+        #This is a huge function that has three functions working to get the last result!
         Data_Load = load_session()
         Program_Data_load = Cur.execute("SELECT Gender, Diet_Goal, Target_Weight, Training_Days, Not_Active_Days, Intensity_Level, Experience FROM Program_Users WHERE Name = ?", (Data_Load["name"],)).fetchone()
         Activity_Num = self.Get_Activity()
         def BMR_Calc():
+            #BMR Formula depending on the Gender , a certain formula is applied and restored!
+            #The get activity func is out because it doesn't make any since if it is here, It only returns a number that is needed for the formula nothing else!
             Pr_BMR = 0
             if Program_Data_load[0] == "Male":
                 Pr_BMR += 10 * Data_Load["weight"] + 6.25 * Data_Load["height"] - 5 * Data_Load["age"] + 5
@@ -159,6 +172,7 @@ class Program_setUp(ctk.CTkFrame):
                 Pr_BMR += 10 * Data_Load["weight"] + 6.25 * Data_Load["height"] - 5 * Data_Load["age"] - 161        
                 return round(Pr_BMR)
         def TDEE_Calc():
+            #TDEE Formula to get the actual calorie burning daily!, This is also needed for the diet plan!
             TDEE_Pr = 0
             Bmr = BMR_Calc()
             if Activity_Num:
@@ -168,6 +182,7 @@ class Program_setUp(ctk.CTkFrame):
                 return Bmr
             
         def Calories_Table_Calc():
+            #Depending on the goal, it will increase/decrease or stay the same!
             default = TDEE_Calc() 
             if self.Diet_Goal.get() == "Maintain My Weight":
                 return default
@@ -181,9 +196,11 @@ class Program_setUp(ctk.CTkFrame):
         TDEE = TDEE_Calc()
         CALORIES = Calories_Table_Calc()
         
-        return BMR, json.dumps(CALORIES), TDEE
+        return BMR, json.dumps(CALORIES), TDEE # => Dumps some of them as a string because it is more than one value!
         
     def Create_Details_Frame(self):
+        #Creating the Details Frame containing everything needed to get the needed Data!. 
+        #After this should be the MainMenu!
         bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Black GYM Background.jpeg"), size=(1000, 700))
         
         bg_label = ctk.CTkLabel(self, image=bkg_Image, text="", fg_color="transparent")
@@ -290,7 +307,7 @@ class Program_setUp(ctk.CTkFrame):
         
         Submit_Button = ctk.CTkButton(self, text="SUBMIT", width=238, height=50, 
                                     **Styles.button_styles["Small"], 
-                                    command=lambda: self.Submit())
+                                    command=lambda: self.Submit()) # => Activating the Submit Func!
         Submit_Button.place(x=557, y=530)
         
         self.Submit_Button_warning = ctk.CTkLabel(self, text="", **Styles.label_styles["error_title"])
