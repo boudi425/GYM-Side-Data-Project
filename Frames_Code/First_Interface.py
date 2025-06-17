@@ -12,17 +12,9 @@ from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
-Con = sqlite3.connect(get_data_path(get_data_path("Users_Data.db")))
-Cur = Con.cursor()
-with open("Data_Side/GYM&User_DATA.sql", "r") as Table_Query:
-    Cur.executescript(Table_Query.read())
-    
-Con_Feed_Repo = sqlite3.connect(get_data_path("Reports_Feedbacks.db"))
-Cur_Feed_Repo = Con_Feed_Repo.cursor()
-with open("Data_Side/Reports&Feedbacks.sql", "r") as query:
-    Cur.executescript(query.read())
+Con, Cur = Side_Functions.openData(get_data_path("Users_Data.db"), "Data_Side/GYM&User_DATA.sql")
+Con_Feed_Repo, Cur_Feed_Repo = Side_Functions.openData(get_data_path("Reports&Feedbacks.db"), "Data_Side/Reports&Feedbacks.sql")
 #First: Sign up Interface/Class
-
     
 # // Main Window...
 ctk.set_appearance_mode("dark")
@@ -31,21 +23,18 @@ ctk.set_window_scaling(1)
 ctk.set_widget_scaling(1)
 class Sign_Up(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
-        #Setting up the main vars needed for the Frame/Class
         super().__init__(master)
-        self.gender_var = ctk.StringVar(value="Male")
         self.switch_screen = switch_screen
         self.username = ctk.StringVar()
         self.password = ctk.StringVar()
         self.email = ctk.StringVar()
-        self.body_Weight = ctk.StringVar(value=0)
-        self.body_Height = ctk.StringVar(value=0)
-        self.age = ctk.StringVar(value=0)
+        self.body_Weight = ctk.StringVar(value="0")
+        self.body_Height = ctk.StringVar(value="0")
+        self.age = ctk.StringVar(value="0")
         self.Activity = ctk.StringVar(value="Moderate: exercise 4-5 times/week")
         self.Create_Sign_Up_Frame()
-        
+
     def Error_Popup_Window(self, Label_Text, Button_Text):
-        #Not Used but here for any thing happened that is not expected as errors
         root = ctk.CTkToplevel()
         root.geometry("250x150")
         root.title("Error")
@@ -53,79 +42,99 @@ class Sign_Up(ctk.CTkFrame):
         ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy)
 
     def Submit(self):
-        #this is the main logic start up function which handles probably most of the errors 
         Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
         Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
-        
         valid = True
-        
+
+        # Username
         if not Side_Functions.check_empty(self.username, self.username_warning, "⚠ Username required"):
             valid = False
         elif self.username.get().capitalize() in Names:
             self.username_warning.configure(text="⚠ Username is already Taken")
-            self.username_warning.update()
             valid = False
-        #---------------------------------------------------------------------------------------------------
+
+        # Password
         if not Side_Functions.check_empty(self.password, self.password_warning, "⚠ Password required"):
             valid = False
+
+        # Weight
         if not Side_Functions.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
             valid = False
-        elif self.body_Weight.get().isalpha():
-            self.weight_warning.configure(text="⚠ Enter Numbers Only")
-            valid = False
-        elif int(self.body_Weight.get()) < 0:
-            self.weight_warning.configure(text="⚠ Negative Numbers \naren't allowed")
-            valid = False
-            
+        else:
+            try:
+                if int(self.body_Weight.get()) < 0:
+                    self.weight_warning.configure(text="⚠ Negative Numbers \naren't allowed")
+                    valid = False
+            except ValueError:
+                self.weight_warning.configure(text="⚠ Enter Numbers Only")
+                valid = False
+
+        # Height
         if not Side_Functions.check_empty(self.body_Height, self.height_warning, "⚠ Height required"):
             valid = False
-        elif self.body_Height.get().isalpha():
-            self.height_warning.configure(text="⚠ Enter Numbers Only")
-            valid = False
-        elif int(self.body_Height.get()) < 0:
-            self.height_warning.configure(text="⚠ Negative Numbers \naren't allowed")
-            valid = False
-            
+        else:
+            try:
+                if int(self.body_Height.get()) < 0:
+                    self.height_warning.configure(text="⚠ Negative Numbers \naren't allowed")
+                    valid = False
+            except ValueError:
+                self.height_warning.configure(text="⚠ Enter Numbers Only")
+                valid = False
+
+        # Email
         if not Side_Functions.check_empty(self.email, self.email_warning, "⚠ Email required"):
             valid = False
-        elif Side_Functions.suggest_email_domain(self.email.get()) != None:
-            Domain = Side_Functions.suggest_email_domain(self.email.get())
-            self.email_warning.configure(text=Domain)
+        elif Side_Functions.suggest_email_domain(self.email.get()) is not None:
+            self.email_warning.configure(text=Side_Functions.suggest_email_domain(self.email.get()))
+            valid = False
         elif self.email.get() in Emails:
             self.email_warning.configure(text="⚠ Email is already Taken")
             valid = False
-            
+
+        # Age
         if not Side_Functions.check_empty(self.age, self.age_warning, "⚠ Age required"):
             valid = False
-        elif self.age.get().isalpha():
-            self.age_warning.configure(text="⚠ Enter Numbers Only")
-            valid = False
-        elif int(self.age.get()) < 0:
-            self.age_warning.configure(text="⚠ Negative Numbers \naren't allowed")
-            valid = False
+        else:
+            try:
+                if int(self.age.get()) < 0:
+                    self.age_warning.configure(text="⚠ Negative Numbers \naren't allowed")
+                    valid = False
+            except ValueError:
+                self.age_warning.configure(text="⚠ Enter Numbers Only")
+                valid = False
+
         if valid:
-            self.SignUp_Data_Management() # After checking ava data or empty fields We can now safely inset the data!
+            self.SignUp_Data_Management()
 
     def SignUp_Data_Management(self):
-        # Just inserting the Data!
-        Cur.execute("""INSERT INTO Users(
-                    Name, 
-                    Password, 
-                    Email, 
-                    Body_Weight, 
-                    Body_Height, 
-                    Activity, 
-                    Age) VALUES(?, ?, ?, ?, ?, ?, ?)
-                    """, (self.username.get(), self.password.get(), self.email.get()
-                        , self.body_Weight.get(), self.body_Height.get(),
-                        int(self.age.get()), self.Activity.get()))
-        Con.commit()
-        if self.switch_screen:
-                self.switch_screen() # If there is a screen which can be go to, Call the function which allow us doing it!
+        try:
+            Cur.execute("""INSERT INTO Users(
+                            Name, 
+                            Password, 
+                            Email, 
+                            Body_Weight, 
+                            Body_Height, 
+                            Activity, 
+                            Age) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            self.username.get(),
+                            self.password.get(),
+                            self.email.get(),
+                            int(self.body_Weight.get()),
+                            int(self.body_Height.get()),
+                            self.Activity.get(),
+                            int(self.age.get())
+                        ))
+            Con.commit()
+            if self.switch_screen:
+                self.switch_screen()
+        except Exception as e:
+            self.Error_Popup_Window(f"Error: {e}", "Okay")
     def Create_Sign_Up_Frame(self):
         #Creating the frame Which contains every widgets needed (This is most one that takes code!)
         Title_Label = ctk.CTkLabel(self, 
-                                text="Sign Up To Experience All Our WORK!",
+                                text="Sign Up To Experience All Our WORK!", 
                                 **Styles.label_styles["title2"])
         Title_Label.place(relx=0.5, rely=0.05, anchor="center")
         
