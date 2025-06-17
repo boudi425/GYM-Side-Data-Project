@@ -28,7 +28,52 @@ button_styles = {
         "corner_radius": 14,
         "font": ("Lato", 20, "bold"),
         "border_width": 0
-    }
+    },
+    "First": {
+        "fg_color": "#FF8411",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#FF4800",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Arial", 20, "bold"),
+        "border_width": 0
+    },
+    "Second": {
+        "fg_color": "#267DFF",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#0011F8",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Arial", 20, "bold"),
+        "border_width": 0
+    },
+    "Third": {
+        "fg_color": "#FF472F",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#FF0000",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Arial", 20, "bold"),
+        "border_width": 0
+    },
+    "Fourth": {
+        "fg_color": "#0044ff",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#00ccff",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Lato", 20, "bold"),
+        "border_width": 0
+    },
+    "Fifth": {
+        "fg_color": "#48ff00",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#00ff55",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Lato", 20, "bold"),
+        "border_width": 0
+    },
 }
 
 # Label styles
@@ -63,6 +108,21 @@ label_styles = {
         "text_color": "#D0FF00",
         "corner_radius": 8,
         "font": ("Lato", 32, "bold")
+    },
+    "Menu_title": {
+        "text_color": "#FF7300",
+        "corner_radius": 8,
+        "font": ("Arial", 40, "bold")
+    },
+    "Menu_subtitle": {
+        "text_color": "#DDC704",
+        "corner_radius": 8,
+        "font": ("Arial", 32, "bold")
+    },
+    "Menu_Labels": {
+        "text_color": "#2600FF",
+        "corner_radius": 8,
+        "font": ("Arial", 30, "bold")
     }
 }
 
