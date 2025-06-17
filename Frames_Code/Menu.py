@@ -1,92 +1,64 @@
 import customtkinter as ctk
 import Styles
-from User_session import load_session, save_session, user_session
-import Side_Functions
-import os
-import sys
-import sqlite3
-import webbrowser
+from User_session import load_session
 from PIL import Image
+
 class mainMenu(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.Create_mainMenu_Frame()
+
     def Create_mainMenu_Frame(self):
         Data_Load = load_session()
+
+        # ---------------------- Title Label ----------------------
         ctk.CTkLabel(self, text="BLACK GYM Main Menu", **Styles.label_styles["Menu_title"]).place(x=24, y=11)
-        #IMAGES!!!!
-        Logout_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/logout.png"), size=(24, 24))
-        Profile_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Profile.png"), size=(24, 24))
-        Settings_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Sett.png"), size=(24, 24))
-        Calorie_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Cal.png"), size=(30, 30))
-        Exercise_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Exe.png"), size=(30, 30))
-        Goal_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Progress.png"), size=(30, 30))
-        Plan_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Plan.png"), size=(30, 30))
-        Feedback_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Feedback.png"), size=(30, 30))
-        #---------------------------------------------------------------------------------------------------------
-        
+
+        # ---------------------- Load Images ----------------------
+        image_paths = {
+            "logout": "Window_Images/logout.png",
+            "profile": "Window_Images/Profile.png",
+            "settings": "Window_Images/Sett.png",
+            "calorie": "Window_Images/Cal.png",
+            "exercise": "Window_Images/Exe.png",
+            "goal": "Window_Images/Progress.png",
+            "plan": "Window_Images/Plan.png",
+            "feedback": "Window_Images/Feedback.png",
+        }
+
+        images = {key: ctk.CTkImage(dark_image=Image.open(path), size=(30, 30)) for key, path in image_paths.items()}
+        small_images = {key: ctk.CTkImage(dark_image=Image.open(path), size=(24, 24)) for key, path in image_paths.items()}
+
+        # ---------------------- Main Display Frame ----------------------
         self.In_frame = ctk.CTkFrame(self, width=768, height=520, fg_color="gray20", border_width=2, border_color="white")
         self.In_frame.place(x=220, y=70)
-        
-        Profile_Button = ctk.CTkButton(self, text="Profile", image=Profile_Image, **Styles.button_styles["First"], 
-                    width=150,
-                    height=50,
-                    compound="left")
-        Profile_Button.place(x=500, y=11)
-        Profile_Button.bind("<Enter>", lambda e: Profile_Button.configure(cursor="hand2"))
-        
-        Settings_Btn = ctk.CTkButton(self, text=" Settings", image=Settings_Image, **Styles.button_styles["Second"],
-                    width=150,
-                    height=50,
-                    compound="left")
-        Settings_Btn.place(x=672, y=11)
-        Settings_Btn.bind("<Enter>", lambda e: Settings_Btn.configure(cursor="hand2"))
-        
-        Logout_Btn = ctk.CTkButton(self, text=" Logout", image=Logout_Image, **Styles.button_styles["Third"],
-                    width=150,
-                    height=50,
-                    compound="left")
-        Logout_Btn.place(x=840, y=11)
-        Logout_Btn.bind("<Enter>", lambda e: Logout_Btn.configure(cursor="hand2"))
-        
-        Plans_Btn = ctk.CTkButton(self, text="My Plan", **Styles.button_styles["Fourth"],
-                                image=Plan_Image,
-                                width=184,
-                                height=50,
-                                compound="left")
-        Plans_Btn.place(x=24, y=110)
-        Plans_Btn.bind("<Enter>", Plans_Btn.configure(cursor="hand2"))
-        
-        Calorie_Btn = ctk.CTkButton(self, text="Calories", **Styles.button_styles["First"],
-                                image=Calorie_Image,
-                                width=184,
-                                height=50,
-                                compound="left")
-        Calorie_Btn.place(x=24, y=190)
-        Calorie_Btn.bind("<Enter>", Calorie_Btn.configure(cursor="hand2"))
-        
-        Exercise_Btn = ctk.CTkButton(self, text="Exercises", **Styles.button_styles["Second"],
-                                    image=Exercise_Image,
-                                    width=184,
-                                    height=50,
-                                    compound="left")
-        Exercise_Btn.place(x=24, y=270)
-        Exercise_Btn.bind("<Enter>", Exercise_Btn.configure(cursor="hand2"))
-        
-        Goal_Btn = ctk.CTkButton(self, text="Journey", **Styles.button_styles["Small"],
-                                    image=Goal_Image,
-                                    width=184,
-                                    height=50,
-                                    compound="left")
-        Goal_Btn.place(x=24, y=350)
-        Goal_Btn.bind("<Enter>", Goal_Btn.configure(cursor="hand2"))
-        
-        
-        Feedback_Btn = ctk.CTkButton(self, text="Rate us!", **Styles.button_styles["Fifth"],
-                                    image=Feedback_Image,
-                                    width=184,
-                                    height=50,
-                                    compound="left")
-        Feedback_Btn.place(x=24, y=528)
-        Feedback_Btn.bind("<Enter>", Feedback_Btn.configure(cursor="hand2"))
-        
+
+        # ---------------------- Top Buttons ----------------------
+        top_buttons = [
+            {"text": "Profile", "image": small_images["profile"], "style": "First", "x": 500},
+            {"text": "Settings", "image": small_images["settings"], "style": "Second", "x": 672},
+            {"text": "Logout", "image": small_images["logout"], "style": "Logout", "x": 840},
+        ]
+
+        for btn in top_buttons:
+            b = ctk.CTkButton(self, text=f" {btn['text']}", image=btn["image"],
+                              **Styles.button_styles[btn["style"]],
+                            width=150, height=50, compound="left")
+            b.place(x=btn["x"], y=11)
+            b.bind("<Enter>", lambda e, b=b: b.configure(cursor="hand2"))
+
+        # ---------------------- Sidebar Buttons ----------------------
+        side_buttons = [
+            {"text": "My Plan", "image": images["plan"], "style": "Sidebar", "y": 110},
+            {"text": "Calories", "image": images["calorie"], "style": "First", "y": 190},
+            {"text": "Exercises", "image": images["exercise"], "style": "Sidebar", "y": 270},
+            {"text": "Journey", "image": images["goal"], "style": "Sidebar", "y": 350},
+            {"text": "Rate us!", "image": images["feedback"], "style": "Feedback", "y": 528},
+        ]
+
+        for btn in side_buttons:
+            b = ctk.CTkButton(self, text=btn["text"], image=btn["image"],
+                              **Styles.button_styles[btn["style"]],
+                            width=184, height=50, compound="left")
+            b.place(x=24, y=btn["y"])
+            b.bind("<Enter>", lambda e, b=b: b.configure(cursor="hand2"))

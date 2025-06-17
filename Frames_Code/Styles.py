@@ -20,6 +20,15 @@ button_styles = {
         "font": ("Lato", 20, "bold"),
         "border_width": 0
     },
+    "Danger!": {
+        "fg_color": "#CF0808",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#FF0000",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Lato", 40, "bold"),
+        "border_width": 0
+    },
     "Small": {
         "fg_color": "#6B4AFF",
         "bg_color": "#2B2B2B",
@@ -47,7 +56,7 @@ button_styles = {
         "font": ("Arial", 20, "bold"),
         "border_width": 0
     },
-    "Third": {
+    "Logout": {
         "fg_color": "#FF472F",
         "bg_color": "#2B2B2B",
         "hover_color": "#FF0000",
@@ -56,16 +65,16 @@ button_styles = {
         "font": ("Arial", 20, "bold"),
         "border_width": 0
     },
-    "Fourth": {
-        "fg_color": "#0044ff",
+    "Sidebar": {
+        "fg_color": "#3966E2",  # Soft blue
+        "hover_color": "#005BFF",
         "bg_color": "#2B2B2B",
-        "hover_color": "#00ccff",
         "text_color": "white",
         "corner_radius": 14,
         "font": ("Lato", 20, "bold"),
         "border_width": 0
     },
-    "Fifth": {
+    "Feedback": {
         "fg_color": "#48ff00",
         "bg_color": "#2B2B2B",
         "hover_color": "#00ff55",

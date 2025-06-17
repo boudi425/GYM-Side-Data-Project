@@ -2,6 +2,7 @@ import hashlib
 import difflib
 import os
 import secrets
+import sqlite3
 
 def generate_token():
     return secrets.token_hex(32)  # Generates a 64-char secure token
@@ -41,4 +42,11 @@ def verify_password(input_password, stored_hash):
 def cleanup_exit():
     if os.path.exists("User_Out_Data/Session.json"):
         os.remove("User_Out_Data/Session.json")
-    
+        
+def openData(DataName, File_Query=None):
+    Con = sqlite3.connect(DataName)
+    Cur = Con.cursor()
+    if File_Query:
+        with open(File_Query, "r") as query:
+            Cur.executescript(query.read())
+    return Con, Cur
