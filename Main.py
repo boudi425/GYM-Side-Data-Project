@@ -54,7 +54,7 @@ class Main_Window(ctk.CTk):
         
         #self.Show_Page(self.Showing_mainMenu)
         self.Show_mainMenu()
-        self.protocol("WM_DELETE_WINDOW", Side_Functions.cleanup_exit)
+        #self.protocol("WM_DELETE_WINDOW", Side_Functions.cleanup_exit)
     def Create_First_InterFace(self):
         #Main Window Frame with Main four buttons
         bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/First_BG.jpeg"), size=(800, 600))
