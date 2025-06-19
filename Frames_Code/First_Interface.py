@@ -52,11 +52,19 @@ class Sign_Up(ctk.CTkFrame):
         elif self.username.get().capitalize() in Names:
             self.username_warning.configure(text="⚠ Username is already Taken")
             valid = False
+        elif len(self.username.get()) > 32:
+            self.username_warning.configure(text="⚠ Username is Too Long!")
+            valid = False
+        elif len(self.username.get()) < 8:
+            self.username_warning.configure(text="⚠ Username is Too Short!")
+            valid = False
 
         # Password
         if not Side_Functions.check_empty(self.password, self.password_warning, "⚠ Password required"):
             valid = False
-
+        elif len(self.password.get()) < 8:
+            self.password_warning.configure(text="⚠ Password is Too Short!")
+            valid = False
         # Weight
         if not Side_Functions.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
             valid = False
