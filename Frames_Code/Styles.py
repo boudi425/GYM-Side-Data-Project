@@ -23,10 +23,10 @@ button_styles = {
     "Danger!": {
         "fg_color": "#CF0808",
         "bg_color": "#2B2B2B",
-        "hover_color": "#FF0000",
+        "hover_color": "#C70000",
         "text_color": "white",
         "corner_radius": 14,
-        "font": ("Lato", 40, "bold"),
+        "font": ("Segoe UI", 20, "bold"),
         "border_width": 0
     },
     "Small": {
@@ -39,50 +39,41 @@ button_styles = {
         "border_width": 0
     },
     "First": {
-        "fg_color": "#FF8411",
+        "fg_color": "#FFAA4D",
         "bg_color": "#2B2B2B",
-        "hover_color": "#FF4800",
+        "hover_color": "#C1733B",
         "text_color": "white",
         "corner_radius": 14,
         "font": ("Arial", 20, "bold"),
         "border_width": 0
     },
     "Second": {
-        "fg_color": "#267DFF",
+        "fg_color": "#4A8AE8",
         "bg_color": "#2B2B2B",
-        "hover_color": "#0011F8",
+        "hover_color": "#2F69B8",
         "text_color": "white",
         "corner_radius": 14,
         "font": ("Arial", 20, "bold"),
         "border_width": 0
     },
-    "Logout": {
-        "fg_color": "#FF472F",
+    "Third": {
+        "fg_color": "#32C766",
         "bg_color": "#2B2B2B",
-        "hover_color": "#FF0000",
+        "hover_color": "#28A957",
         "text_color": "white",
         "corner_radius": 14,
         "font": ("Arial", 20, "bold"),
         "border_width": 0
     },
-    "Sidebar": {
-        "fg_color": "#3966E2",  # Soft blue
-        "hover_color": "#005BFF",
+    "Fourth": {
+        "fg_color": "#9FA8DA",  # Soft blue
+        "hover_color": "#8894C7",
         "bg_color": "#2B2B2B",
         "text_color": "white",
         "corner_radius": 14,
         "font": ("Lato", 20, "bold"),
         "border_width": 0
-    },
-    "Feedback": {
-        "fg_color": "#48ff00",
-        "bg_color": "#2B2B2B",
-        "hover_color": "#00ff55",
-        "text_color": "white",
-        "corner_radius": 14,
-        "font": ("Lato", 20, "bold"),
-        "border_width": 0
-    },
+    }
 }
 
 # Label styles
@@ -119,9 +110,9 @@ label_styles = {
         "font": ("Lato", 32, "bold")
     },
     "Menu_title": {
-        "text_color": "#FF7300",
+        "text_color": "#5D9CEC",
         "corner_radius": 8,
-        "font": ("Arial", 40, "bold")
+        "font": ("Segoe UI", 32, "bold")
     },
     "Menu_subtitle": {
         "text_color": "#DDC704",
