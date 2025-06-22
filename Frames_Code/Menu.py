@@ -64,14 +64,63 @@ class mainMenu(ctk.CTkFrame):
             b.bind("<Enter>", b.configure(cursor="hand2"))
             self.allTab_buttons[key] = b
             
-        def Open_Settings(section="Settings"):
-            switch_toTab(section)
-            Sett_Top = ctk.CTkToplevel()
-
         def Open_Profile(section="Profile"):
             switch_toTab(section)
-            Profile_Top = ctk.CTkToplevel()
-            
+            Pr_Top = ctk.CTkToplevel()
+
+        def Open_Settings(section="Settings"):
+            switch_toTab(section)
+            Settings_Top = ctk.CTkToplevel()
+            Settings_Top.geometry("500x300")
+            ctk.CTkLabel(Settings_Top, text="Settings", **Styles.label_styles["Menu_title"]).place(x=150, y=8)
+            Top_labels = {
+                " Theme:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Theme.png"), size=(28,28)),
+                    "y": 48,
+                    "x": 13
+                },
+                " Dark Mode:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Dark.png"), size=(28,28)),
+                    "y": 75,
+                    "x": 13
+                },
+                " Font Size:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/FS.png"), size=(28,28)),
+                    "y": 107,
+                    "x": 13
+                },
+                " Behavior:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/BH.png"), size=(28,28)),
+                    "y": 134,
+                    "x": 13
+                }, 
+                " Enable Notifications:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Not.png"), size=(28,28)),
+                    "y": 164,
+                    "x": 13
+                },
+                " Data:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Data.png"), size=(28,28)),
+                    "y": 191,
+                    "x": 13
+                },
+                " Default Colors:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Colors.png"), size=(28,28)),
+                    "y": 75,
+                    "x": 196
+                }, 
+                " Font Type:": {
+                    "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/FT.png"), size=(28,28)),
+                    "y": 107,
+                    "x": 214
+                }
+            }
+            for key, item in Top_labels.items():
+                l = ctk.CTkLabel(Settings_Top, text=key, image=item["Image"], compound="left", **Styles.label_styles["Top_Labels"])
+                l.place(x=item["x"], y=item["y"])
+            #ctk.CTkLabel(Profile_Top, text="Dark Mode:", **Styles.label_styles["Top_Labels"]).place(x=13, y=64)
+            #ctk.CTkLabel(Profile_Top, text="Default_Colors:", **Styles.label_styles["Top_Labels"]).place(x=128, y=24)
+            #ctk.CTkLabel(Profile_Top, text="Theme:", **Styles.label_styles["Top_Labels"]).place(x=13, y=38)
         def switch_toTab(section):
             for key, item in self.allTab_buttons.items():
                 print(self.Tab_Btn[key]["Icon_path"])
