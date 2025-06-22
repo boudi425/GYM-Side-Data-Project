@@ -124,6 +124,11 @@ label_styles = {
         "corner_radius": 8,
         "font": ("Segoe UI", 16, "bold")
     },
+    "Top_Labels": {
+        "text_color": "#01439B",
+        "corner_radius": 8,
+        "font": ("Segoe UI", 20, "bold")
+    },
 }
 
 # Entry styles (if you want to style entries too)
