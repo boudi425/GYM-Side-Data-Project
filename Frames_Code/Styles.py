@@ -120,10 +120,10 @@ label_styles = {
         "font": ("Arial", 32, "bold")
     },
     "Menu_Labels": {
-        "text_color": "#2600FF",
+        "text_color": "#5D9CEC",
         "corner_radius": 8,
-        "font": ("Arial", 30, "bold")
-    }
+        "font": ("Segoe UI", 16, "bold")
+    },
 }
 
 # Entry styles (if you want to style entries too)
