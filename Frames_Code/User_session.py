@@ -1,7 +1,8 @@
 import json
-
-class user_session():
-    def __init__(self, name, age, weight, height, Activity):
+import os 
+class user_session:
+    def __init__(self, ID, name, age, weight, height, Activity):
+        self.ID = ID
         self.name = name
         self.age = age
         self.weight = weight
@@ -21,3 +22,31 @@ def load_session():
             return data
     except FileNotFoundError:
         return None
+class UserSettings:
+    def __init__(self, theme, colors, font_size, font_type, Notifications, Data):
+        self.theme = theme
+        self.colors = colors
+        self.font_size = font_size
+        self.font_type = font_type
+        self.Notifications = Notifications
+        self.Data = Data
+        
+def save_settings(userName, Settings):
+    os.makedirs("User_Out_Data", exist_ok=True)
+    with open(f"User_Out_Data/{userName}_Settings.json", "w") as f:
+        json.dump(Settings.__dict__, f, indent=4)
+
+def load_user_Settings(username):
+    try:
+        with open(f"User_Out_Data/{username}_Settings.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Default settings
+        return {
+            "theme": "dark",
+            "colors": "blue",
+            "font_size": 16,
+            "font_type": "Lato",
+            "Notifications": False,
+            "Data": False
+        }

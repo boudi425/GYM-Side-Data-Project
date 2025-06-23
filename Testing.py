@@ -1,17 +1,26 @@
-import customtkinter as ctk
+import customtkinter
 
-print("CTk version:", ctk.__version__)
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
+        self.geometry("400x200")
 
-app = ctk.CTk()
-app.geometry("600x400")
+        # Create the slider
+        self.slider = customtkinter.CTkSlider(
+            self,
+            from_=0,
+            to=100,
+            number_of_steps=100,
+            command=self.update_slider_value
+        )
+        self.slider.pack(pady=20)
 
-tabview = ctk.CTkTabview(app, width=400, height=300, tab_position="left")
-tabview.place(x=100, y=50)
+        # Create the label to display value
+        self.slider_label = customtkinter.CTkLabel(self, text="Value: 0")
+        self.slider_label.pack()
 
-tabview.add("Tab 1")
-tabview.add("Tab 2")
+    def update_slider_value(self, value):
+        self.slider_label.configure(text=f"Value: {int(float(value))}")
 
-ctk.CTkLabel(tabview.tab("Tab 1"), text="You're in Tab 1").place(x=20, y=20)
-ctk.CTkLabel(tabview.tab("Tab 2"), text="You're in Tab 2").place(x=20, y=20)
-
+app = App()
 app.mainloop()
