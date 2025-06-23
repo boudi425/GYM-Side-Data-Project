@@ -1,6 +1,8 @@
 import customtkinter as ctk
 import Styles
-from User_session import load_session
+from tkinter import filedialog
+import Side_Functions
+from User_session import load_session, save_settings, load_user_Settings, user_session, UserSettings
 from PIL import Image
 
 class mainMenu(ctk.CTkFrame):
@@ -9,7 +11,14 @@ class mainMenu(ctk.CTkFrame):
         self.allTab_buttons = {}
         self.allSidebar_buttons = {}
         self.Create_mainMenu_Frame()
-
+    
+    def load_settings(self):
+        Sett_Load = load_user_Settings("Boudi425")
+        ctk.set_appearance_mode(Sett_Load["theme"])
+        ctk.set_default_color_theme(Sett_Load["color"])
+        self.Font_Style = (Sett_Load["font_type"], Sett_Load["font_size"], "bold")
+        self.Data_His = True
+        self.Notifications = True
     def Create_mainMenu_Frame(self):
         ctk.CTkLabel(self, text="BLACK GYM Main Menu", **Styles.label_styles["Menu_title"]).place(x=10, y=12)
         self.in_frame = ctk.CTkFrame(self, width=768, height=520, border_color="white", border_width=2)
@@ -67,12 +76,55 @@ class mainMenu(ctk.CTkFrame):
         def Open_Profile(section="Profile"):
             switch_toTab(section)
             Pr_Top = ctk.CTkToplevel()
-
+            Pr_Top.geometry("300x450")
+            Pr_Top.grid_columnconfigure((0, 1, 2), weight=1)
+            def Save():
+                pass
+            def choose_image():
+                file_path = filedialog.askopenfile(
+                    title="Choose an image",
+                    filetypes=[("Image Files", "*.png *.jpg *.jpeg *.webp")]
+                )
+                if file_path:
+                    Circle_Image = Side_Functions.make_circle_image(file_path, size=(120, 120))
+                    ctk_img = ctk.CTkImage(light_image=Circle_Image, dark_image=Circle_Image)
+                    image_label.configure(image=ctk_img)
+                    image_label.image = ctk_img
+            Pr_Pic = ctk.CTkImage(dark_image=Image.open("Window_Images/Active_Pr.png"), size=(28, 28))
+            Pr_Title = ctk.CTkLabel(Pr_Top, text=" Profile", image=Pr_Pic, compound="left", **Styles.label_styles["Menu_title"])
+            Pr_Title.grid(row=0, column=1, pady=(5, 20))
+            No_Image_Circle = Side_Functions.make_circle_image("Window_Images/Test.png", size=(120, 120))
+            No_Image = ctk.CTkImage(dark_image=No_Image_Circle, light_image=No_Image_Circle, size=(120, 120))
+            image_label = ctk.CTkLabel(Pr_Top, text="", image=No_Image)
+            image_label.grid(row=1, column=1, pady=1)
+            info_frame = ctk.CTkFrame(Pr_Top, fg_color="transparent")
+            info_frame.grid(row=2, column=1, pady=20)
+            Pencil_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Pencil.png"), light_image=Image.open("Window_Images/Pencil.png"), size=(25, 25))
+            Username = "Boudi425"
+            username_label = ctk.CTkLabel(info_frame, text=Username, **Styles.label_styles["Menu_Labels2"])
+            username_label.grid(row=0, column=0, padx=(0, 0))
+            username_btn = ctk.CTkButton(info_frame, text="",image=Pencil_Image, width=32, height=32, **Styles.button_styles["Quick"])
+            username_btn.grid(row=0, column=1)
+            Email = "b*******@gmail.com"
+            Email_label = ctk.CTkLabel(info_frame, text=Email, **Styles.label_styles["Menu_Labels2"])
+            Email_label.grid(row=1, column=0, padx=(0, 0), pady=10)
+            Email_btn = ctk.CTkButton(info_frame, text="",image=Pencil_Image, width=32, height=32, **Styles.button_styles["Quick"])
+            Email_btn.grid(row=1, column=1, pady=10)
+            
+            Update_Image_img = ctk.CTkImage(dark_image=Image.open("Window_Images/Upload.png"), size=(28, 28))
+            Update_Image_btn = ctk.CTkButton(Pr_Top, text="Upload Image",
+                                            image=Update_Image_img, compound="left",
+                                            width=50, height=25, 
+                                            **Styles.button_styles["Second"], command=choose_image)
+            Update_Image_btn.grid(row=3, column=1, pady=30)
+            
+            Save_btn = ctk.CTkButton(Pr_Top, text="Save",width=50, height=25, **Styles.button_styles["Second"], command=lambda: Save)
+            Save_btn.grid(row=4, column=1)
         def Open_Settings(section="Settings"):
             switch_toTab(section)
             Settings_Top = ctk.CTkToplevel()
-            Settings_Top.geometry("500x300")
-            ctk.CTkLabel(Settings_Top, text="Settings", **Styles.label_styles["Menu_title"]).place(x=150, y=8)
+            Settings_Top.geometry("550x400")
+            ctk.CTkLabel(Settings_Top, text="Settings", **Styles.label_styles["Menu_title"]).place(x=200, y=8)
             Top_labels = {
                 " Theme:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Theme.png"), size=(28,28)),
@@ -81,46 +133,96 @@ class mainMenu(ctk.CTkFrame):
                 },
                 " Dark Mode:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Dark.png"), size=(28,28)),
-                    "y": 75,
+                    "y": 87,
                     "x": 13
                 },
                 " Font Size:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/FS.png"), size=(28,28)),
-                    "y": 107,
+                    "y": 130,
                     "x": 13
                 },
                 " Behavior:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/BH.png"), size=(28,28)),
-                    "y": 134,
+                    "y": 180,
                     "x": 13
                 }, 
                 " Enable Notifications:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Not.png"), size=(28,28)),
-                    "y": 164,
-                    "x": 13
+                    "y": 215,
+                    "x": 10
                 },
                 " Data:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Data.png"), size=(28,28)),
-                    "y": 191,
+                    "y": 270,
                     "x": 13
                 },
                 " Default Colors:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Colors.png"), size=(28,28)),
-                    "y": 75,
-                    "x": 196
+                    "y": 87,
+                    "x": 265
                 }, 
                 " Font Type:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/FT.png"), size=(28,28)),
-                    "y": 107,
-                    "x": 214
+                    "y": 130,
+                    "x": 245
                 }
             }
+            def update_slider_value(value):
+                slider_label.configure(text=f"Font Size: {int(value)}")
             for key, item in Top_labels.items():
                 l = ctk.CTkLabel(Settings_Top, text=key, image=item["Image"], compound="left", **Styles.label_styles["Top_Labels"])
                 l.place(x=item["x"], y=item["y"])
-            #ctk.CTkLabel(Profile_Top, text="Dark Mode:", **Styles.label_styles["Top_Labels"]).place(x=13, y=64)
-            #ctk.CTkLabel(Profile_Top, text="Default_Colors:", **Styles.label_styles["Top_Labels"]).place(x=128, y=24)
-            #ctk.CTkLabel(Profile_Top, text="Theme:", **Styles.label_styles["Top_Labels"]).place(x=13, y=38)
+            
+            Mode_Switch = ctk.CTkSwitch(Settings_Top,
+                                        onvalue="dark", offvalue="light", **Styles.Switches["Switch1"])
+            Mode_Switch.place(x=170, y=90)
+            
+            Cb_Colors = ctk.CTkComboBox(Settings_Top,
+                                        width=90, height=20, 
+                                        values=["blue", "yellow", "red", "orange", "green", "pink"], **Styles.ComboBox["Box2"])
+            Cb_Colors.place(x=450, y=90)
+            Cb_Colors.set("blue")
+            
+            Slider_FS = ctk.CTkSlider(Settings_Top, width=90, height=19, progress_color="#1A9FB1", 
+                                    number_of_steps=24, from_=16, to=40,
+                                    command=update_slider_value)
+            Slider_FS.place(x=145, y=138)
+            slider_label = ctk.CTkLabel(Settings_Top, text="Font size: 0")
+            slider_label.place(x=155, y=160)
+            
+            Cb_FT = ctk.CTkComboBox(Settings_Top, 
+                                    width=150, height=19, **Styles.ComboBox["Box2"],
+                                    values=["Lato", "Segoe UI", "Arial", "Tahoma", "Lucida Sans Unicode", "Calibri"])
+            Cb_FT.place(x=390, y=133)
+            Cb_FT.set("Lato")
+            
+            Notifications_Switch = ctk.CTkSwitch(Settings_Top, **Styles.Switches["Switch1"], onvalue=True, offvalue=False)
+            Notifications_Switch.place(x=255, y=218)
+            
+            Warn_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Warn.png"), size=(24, 24))
+            ctk.CTkLabel(Settings_Top, text="Clear Data/History:" ,
+                        image=Warn_Image, 
+                        compound="left", **Styles.label_styles["Top_Labels"]).place(x=19, y=300)
+            
+            Data_Switch = ctk.CTkSwitch(Settings_Top, width=54, height=27, onvalue=True, offvalue=False, **Styles.Switches["Switch1"])
+            Data_Switch.place(x=235, y=305)
+
+            
+            Submit_Btn = ctk.CTkButton(Settings_Top, text="Save", **Styles.button_styles["Second"], 
+                                    command=lambda: Save_Settings(Mode_Switch.get(), 
+                                                                Cb_Colors.get(), 
+                                                                Slider_FS.get(),
+                                                                Cb_FT.get(), 
+                                                                Notifications_Switch.get(),
+                                                                Data_Switch.get())).place(x=215, y=350)
+            
+            def Save_Settings(Mode_Choice="dark", 
+                            Default_Colors="blue", 
+                            Font_Size=16, 
+                            Font_Type="Lato", 
+                            Notifications=False, Data_History=False):
+                Data = UserSettings(Mode_Choice, Default_Colors, Font_Size, Font_Type, Notifications, Data_History)
+                save_settings("Boudi425", *Data)
         def switch_toTab(section):
             for key, item in self.allTab_buttons.items():
                 print(self.Tab_Btn[key]["Icon_path"])

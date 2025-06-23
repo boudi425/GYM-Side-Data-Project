@@ -418,7 +418,7 @@ class Login(ctk.CTkFrame):
                     f.write(token)
                 Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
                 Con.commit()
-            user_Data = Cur.execute("SELECT Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
+            user_Data = Cur.execute("SELECT ID, Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
             result = user_Data.fetchone()
             
             session = user_session(*result) 
@@ -433,7 +433,7 @@ class Login(ctk.CTkFrame):
             # if accessed this window for check if sure window then destroy it and if this true then we logged from the token, this we can take the token
             #and get the data from it and store it in the session.json file so we can access the data easily!
             self.Check_if_logged_window.destroy()
-            result = Cur.execute("SELECT Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,)).fetchone()
+            result = Cur.execute("SELECT ID, Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,)).fetchone()
             save_session(*result)
         except AttributeError:
             return None
@@ -460,7 +460,7 @@ class Login(ctk.CTkFrame):
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
             try:
                 Data_Load = load_session()
-                Access = Cur.execute("SELECT Full_Logged FROM Users WHERE Name = ?", (Data_Load["name"],)).fetchone()
+                Access = Cur.execute("SELECT Full_Logged FROM Users WHERE ID = ?", (Data_Load["ID"],)).fetchone()
                 if Access:
                     self.Logged_switch_screen()
             except (TypeError, AttributeError) as e:

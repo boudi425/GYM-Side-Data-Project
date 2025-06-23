@@ -3,6 +3,7 @@ import difflib
 import os
 import secrets
 import sqlite3
+from PIL import Image, ImageDraw
 
 def generate_token():
     return secrets.token_hex(32)  # Generates a 64-char secure token
@@ -50,3 +51,14 @@ def openData(DataName, File_Query=None):
         with open(File_Query, "r") as query:
             Cur.executescript(query.read())
     return Con, Cur
+def make_circle_image(path, size=(100, 100)):
+    img = Image.open(path).resize(size).convert("RGBA")
+
+    # Create same size mask image with transparency
+    mask = Image.new("L", size, 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, size[0], size[1]), fill=255)
+
+    # Apply the mask to create circular image
+    img.putalpha(mask)
+    return img

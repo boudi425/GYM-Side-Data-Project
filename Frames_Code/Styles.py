@@ -73,7 +73,16 @@ button_styles = {
         "corner_radius": 14,
         "font": ("Lato", 20, "bold"),
         "border_width": 0
-    }
+    },
+    "Quick": {
+        "fg_color": "#9FA8DA",
+        "bg_color": "#2B2B2B",
+        "hover_color": "#8894C7",
+        "text_color": "white",
+        "corner_radius": 14,
+        "font": ("Arial", 10, "bold"),
+        "border_width": 0
+    },
 }
 
 # Label styles
@@ -119,13 +128,18 @@ label_styles = {
         "corner_radius": 8,
         "font": ("Arial", 32, "bold")
     },
-    "Menu_Labels": {
+    "Menu_Labels2": {
         "text_color": "#5D9CEC",
+        "corner_radius": 8,
+        "font": ("Segoe UI", 20, "bold")
+    },
+    "Menu_Labels": {
+        "text_color": "#398FFF",
         "corner_radius": 8,
         "font": ("Segoe UI", 16, "bold")
     },
     "Top_Labels": {
-        "text_color": "#01439B",
+        "text_color": "#1A9FB1",
         "corner_radius": 8,
         "font": ("Segoe UI", 20, "bold")
     },
@@ -162,5 +176,30 @@ ComboBox = {
         "button_color": "grey",
         "font": ("Lato", 32, "bold"),
         "dropdown_font": ("Lato", 32, "bold")
+    },
+    "Box2": {
+        "state": "readonly",
+        "border_color": "#4A90E2",
+        "bg_color": "#2B2B2B",
+        "dropdown_fg_color": "#2B2B2B",
+        "dropdown_text_color": "white",
+        "text_color": "white",
+        "button_color": "grey",
+        "font": ("Lato", 18, "bold"),
+        "dropdown_font": ("Lato", 18, "bold")
+    }
+}
+
+Switches = {
+    "Switch1": {
+        "switch_width": 50,
+        "switch_height": 26,
+        "fg_color": "#1A9FB1",
+        "progress_color": "#0F6F7F",
+        "button_color": "#FFFFFF",
+        "button_hover_color": "#E0F7FA",
+        "text_color": "#FFFFFF",    # Doesn't matter if text is hidden
+        "text": "",                 # Hides the text completely        # Centers the switch nicely
+        "corner_radius": 100      # Optional: make it fully rounded
     }
 }

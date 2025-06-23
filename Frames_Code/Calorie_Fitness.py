@@ -7,7 +7,7 @@ import Styles
 import Side_Functions
 import json
 from PIL import Image
-from User_session import save_session, load_session, user_session
+from User_session import load_session
 #Importing the most needed Classes!
 #Starting the part 2 from the project 
 Con = sqlite3.connect(get_data_path("Users_Data.db"))
@@ -47,7 +47,7 @@ class Program_setUp(ctk.CTkFrame):
         self.Sure_Windows.destroy()
         Data_load = load_session()
         Cur.execute("""INSERT INTO Program_Users(
-            Name,
+            User_id,
             Gender,
             Diet_Goal,
             Target_Weight,
@@ -56,7 +56,7 @@ class Program_setUp(ctk.CTkFrame):
             Intensity_Level,
             Experience
             ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)""", 
-            (Data_load["name"], self.gender.get(), self.Diet_Goal.get(), self.target_weight.get(), self.Training_Days_Ava.get(),
+            (Data_load["ID"], self.gender.get(), self.Diet_Goal.get(), self.target_weight.get(), self.Training_Days_Ava.get(),
             self.Days_Off_Activity.get(), self.intensity_Level.get(), self.Experience_Level.get()))
         Con.commit()
         #This one is a bit tricky but let me explain we are going to get the program choice which is True or False
@@ -67,8 +67,8 @@ class Program_setUp(ctk.CTkFrame):
         Data = self.Program_Calc()
         #This Function returns every needed data , we will explain how we get it down!
         #return Pr_BMR, standard, Final_result, Program
-        Cur.execute("INSERT INTO Program_Data(Name, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
-                    (Data_load["name"], *Data, choice))    
+        Cur.execute("INSERT INTO Program_Data(User_id, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
+                    (Data_load["ID"], *Data, choice))    
         Con.commit()
         
         Cur.execute("PRAGMA table_info(Users);")
@@ -77,7 +77,7 @@ class Program_setUp(ctk.CTkFrame):
         if "Full_Logged" not in columns:
             Cur.execute("ALTER TABLE Users ADD COLUMN Full Logged TEXT;")
             Con.commit()
-        Cur.execute("UPDATE Users Full Logged = ? WHERE Name = ?", (True ,Data_load["name"]))
+        Cur.execute("UPDATE Users Full Logged = ? WHERE ID = ?", (True ,Data_load["ID"]))
         
     def switch_page(self):
         #Not using the try/expect stuff because this function doesn't get activated expect when it is needed! 

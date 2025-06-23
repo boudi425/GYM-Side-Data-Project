@@ -1,5 +1,7 @@
-CREATE TABLE IF NOT EXISTS Users (
-    ID INTEGER PRIMARY KEY  AUTOINCREMENT,
+CREATE TABLE
+IF NOT EXISTS Users
+(
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
     Name TEXT,
     Password TEXT,
     Email TEXT,
@@ -9,25 +11,34 @@ CREATE TABLE IF NOT EXISTS Users (
     Age INTEGER
 );
 
-
-CREATE TABLE IF NOT EXISTS Program_Users (
+CREATE TABLE
+IF NOT EXISTS Program_Users
+(
     User_PROGRAM_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name TEXT,
+    User_id INTEGER,
     Gender TEXT,
     Diet_Goal TEXT,
     Target_Weight INTEGER,
     Training_Days TEXT,
     Not_Active_Days TEXT,
     Intensity_Level TEXT,
-    Experience TEXT
+    Experience TEXT,
+    FOREIGN KEY
+(User_id) REFERENCES Users
+(ID)
 );
 
-CREATE TABLE IF NOT EXISTS Program_Data (
-    Progam_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-    Name TEXT,
+CREATE TABLE
+IF NOT EXISTS Program_Data
+(
+    Program_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    User_id INTEGER,
     BMR INTEGER,
     Calories TEXT,
     TDEE INTEGER,
-    Program_Choice TEXT
+    Program_Choice TEXT,
+    FOREIGN KEY
+(User_id) REFERENCES Users
+(ID)
 );
 
