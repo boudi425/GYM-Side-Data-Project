@@ -1,0 +1,26 @@
+# Python Bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+env/
+
+# OS/System
+.DS_Store
+Thumbs.db
+
+# Logs and junk files
+*.log
+*.tmp
+
+# Database files
+*.sqlite3
+*.db
+
+# Secrets
+.env
+*.token
+
+# CustomTkinter user folders
+User_Out_Data/
