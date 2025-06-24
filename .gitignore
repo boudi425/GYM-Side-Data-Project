@@ -173,5 +173,12 @@ poetry.toml
 # LSP config files
 pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
+
+# Ignore everything in User_Out_Data
+User_Out_Data/*
+
+# But keep this file
+!User_Out_Data/.keep
+
 # CustomTkinter user folders
 User_Out_Data/
