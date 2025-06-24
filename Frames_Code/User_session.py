@@ -31,14 +31,14 @@ class UserSettings:
         self.Notifications = Notifications
         self.Data = Data
         
-def save_settings(userName, Settings):
+def save_settings(ID, Settings):
     os.makedirs("User_Out_Data", exist_ok=True)
-    with open(f"User_Out_Data/{userName}_Settings.json", "w") as f:
+    with open(f"User_Out_Data/User{ID}_Settings.json", "w") as f:
         json.dump(Settings.__dict__, f, indent=4)
 
-def load_user_Settings(username):
+def load_user_Settings(ID):
     try:
-        with open(f"User_Out_Data/{username}_Settings.json", "r") as f:
+        with open(f"User_Out_Data/User{ID}_Settings.json", "r") as f:
             return json.load(f)
     except FileNotFoundError:
         # Default settings

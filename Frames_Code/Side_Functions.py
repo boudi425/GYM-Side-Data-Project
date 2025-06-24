@@ -4,7 +4,19 @@ import os
 import secrets
 import sqlite3
 from PIL import Image, ImageDraw
+import random
 
+def mask_email(email):
+    name, domain = email.split("@")
+    if len(name) < 3:
+        return email  # too short to mask
+    return f"{name[0]}{'*' * (len(name)-2)}{name[-1]}@{domain}"
+
+def generate_random_num(Range_Num):
+    Numbers = []
+    for i in range(Range_Num):
+        Numbers.append(str(random.randint(0, 10)))
+    return "".join(Numbers)
 def generate_token():
     return secrets.token_hex(32)  # Generates a 64-char secure token
 
@@ -51,6 +63,7 @@ def openData(DataName, File_Query=None):
         with open(File_Query, "r") as query:
             Cur.executescript(query.read())
     return Con, Cur
+
 def make_circle_image(path, size=(100, 100)):
     img = Image.open(path).resize(size).convert("RGBA")
 
