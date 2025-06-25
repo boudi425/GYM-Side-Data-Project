@@ -4,6 +4,10 @@ from tkinter import filedialog
 import Side_Functions
 from User_session import load_session, save_settings, load_user_Settings, user_session, UserSettings
 from PIL import Image
+import sqlite3
+from path_setup import get_data_path
+
+Conn, Cur = Side_Functions.openData(get_data_path("Users_Data.db"))
 
 class mainMenu(ctk.CTkFrame):
     def __init__(self, master):
@@ -11,9 +15,18 @@ class mainMenu(ctk.CTkFrame):
         self.allTab_buttons = {}
         self.allSidebar_buttons = {}
         self.Create_mainMenu_Frame()
-    
+        
+    def Error_Popup_Window(self, Label_Text, Button_Text):
+        root = ctk.CTkToplevel()
+        root.geometry("500x150")
+        root.title("Error")
+        ctk.CTkLabel(root, text=Label_Text, **Styles.label_styles["Menu_Labels2"]).pack()
+        ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy).pack(pady=10)
+        root.attributes("-topmost", True)
+        
     def load_settings(self):
-        Sett_Load = load_user_Settings("Boudi425")
+        Data_load = load_session()
+        Sett_Load = load_user_Settings(Data_load["ID"])
         ctk.set_appearance_mode(Sett_Load["theme"])
         ctk.set_default_color_theme(Sett_Load["color"])
         self.Font_Style = (Sett_Load["font_type"], Sett_Load["font_size"], "bold")
@@ -74,43 +87,135 @@ class mainMenu(ctk.CTkFrame):
             self.allTab_buttons[key] = b
             
         def Open_Profile(section="Profile"):
+            Data_load = load_session()
+            Current_Email = Cur.execute("SELECT Email FROM Users WHERE ID = ?", (Data_load["ID"],)).fetchone()
+            Email = ctk.StringVar()
+            Name = ctk.StringVar()
             switch_toTab(section)
             Pr_Top = ctk.CTkToplevel()
             Pr_Top.geometry("300x450")
             Pr_Top.grid_columnconfigure((0, 1, 2), weight=1)
+            def Change_Email():
+                
+                def Submit_Email():
+                    if Email.get() == "":
+                        self.Error_Popup_Window("Please Enter an Email If you don't want,\n Close the Window", "Close")
+                        
+                    elif Email.get() == Current_Email[0]:
+                        self.Error_Popup_Window("Same Email!,\n Please Change it or Close the Window", "Close")
+                        
+                    elif Side_Functions.suggest_email_domain(Email.get()) is not None:
+                        self.Error_Popup_Window(Side_Functions.suggest_email_domain(Email.get()), "Close")
+                        
+                    elif not "@" in list(Email.get()):
+                        self.Error_Popup_Window("This is not an email!", "Close")
+                    else:
+                        Email_label.configure(text=Side_Functions.mask_email(Email.get()))
+                        Email_Top.destroy()
+                        
+                Email_Top = ctk.CTkToplevel()
+                Email_Top.geometry("400x200")
+                Email_Top.grid_columnconfigure((0, 1, 2), weight=1)
+                ctk.CTkLabel(Email_Top, text="Enter the email that you want it:",
+                            **Styles.label_styles["Menu_Labels2"]).grid(row=0, column=1, pady=10)
+                ctk.CTkEntry(Email_Top, textvariable=Email,
+                            width=250, height=30,
+                            **Styles.entry_styles["default"]).grid(row=1, column=1, pady=5)
+                ctk.CTkButton(Email_Top, text="Save",
+                            width=150, height=50,
+                            **Styles.button_styles["Quick"],
+                            command=Submit_Email).grid(row=2, column=1, pady=10)
+                
+            def Change_Name():
+                Names = Cur.execute("SELECT Name FROM Users").fetchall()
+                Name_Top = ctk.CTkToplevel()
+                Name_Top.geometry("400x200")
+                Name_Top.title("Changing Name")
+                Name_Top.grid_columnconfigure((0, 1, 2), weight=1)
+                def Submit_Name():
+                    if Name.get() == "":
+                        self.Error_Popup_Window("Please Enter an Name & If you don't want, Close the Window", "Close")
+                    elif Name.get() == Data_load["name"]:
+                        self.Error_Popup_Window("Same Name!, Please Change it or Close the Window", "Close")
+                    elif len(Name.get()) > 32:
+                        self.Error_Popup_Window("Long Name! Please Change it or Close the Window", "Close")
+                    elif len(Name.get()) < 5:
+                        self.Error_Popup_Window("Too Short! Please Change it or Close the Window", "Close")
+                    elif Name.get() in Names:
+                        Nums_random = Side_Functions.generate_random_num(2)
+                        self.Error_Popup_Window(f"""Already Used Name, Please Changed or Try \n
+                                                [{Name.get()}{Nums_random},
+                                                {Name.get()}{Nums_random},
+                                                {Name.get()}{Nums_random}]""",
+                                                "Close")
+                    else:
+                        Name_Top.destroy()      
+                        username_label.configure(text=Name.get())
+                ctk.CTkLabel(Name_Top, text="Enter the Name that you want it:",
+                            **Styles.label_styles["Menu_Labels2"]).grid(row=0, column=1, pady=10)
+                ctk.CTkEntry(Name_Top, textvariable=Name,
+                            width=200, height=50,
+                            **Styles.entry_styles["default"]).grid(row=1, column=1, pady=5)
+                ctk.CTkButton(Name_Top, text="Save",
+                            width=75, height=50,
+                            **Styles.button_styles["Quick"],
+                            command=Submit_Name).grid(row=2, column=1, pady=10)
+                
+                
             def Save():
-                pass
+                Cur.execute("UPDATE Users SET Name = ?, Email = ? WHERE ID = ?",
+                            (Name.get(), Email.get(), Data_load["ID"]))
+                Conn.commit()
+                Data_load["name"] = Name.get()
             def choose_image():
-                file_path = filedialog.askopenfile(
+                file_path = filedialog.askopenfilename(
                     title="Choose an image",
                     filetypes=[("Image Files", "*.png *.jpg *.jpeg *.webp")]
                 )
                 if file_path:
                     Circle_Image = Side_Functions.make_circle_image(file_path, size=(120, 120))
-                    ctk_img = ctk.CTkImage(light_image=Circle_Image, dark_image=Circle_Image)
+                    ctk_img = ctk.CTkImage(light_image=Circle_Image, dark_image=Circle_Image, size=(120, 120))
                     image_label.configure(image=ctk_img)
                     image_label.image = ctk_img
-            Pr_Pic = ctk.CTkImage(dark_image=Image.open("Window_Images/Active_Pr.png"), size=(28, 28))
+                    Data_load["Image"] = file_path
+            
+            #=============================[Title]==============================
+            Pr_Pic = ctk.CTkImage(dark_image=Image.open(Data_load["Image"]), size=(28, 28))
             Pr_Title = ctk.CTkLabel(Pr_Top, text=" Profile", image=Pr_Pic, compound="left", **Styles.label_styles["Menu_title"])
             Pr_Title.grid(row=0, column=1, pady=(5, 20))
+            #=============================[Circle Image]==============================
             No_Image_Circle = Side_Functions.make_circle_image("Window_Images/Test.png", size=(120, 120))
             No_Image = ctk.CTkImage(dark_image=No_Image_Circle, light_image=No_Image_Circle, size=(120, 120))
             image_label = ctk.CTkLabel(Pr_Top, text="", image=No_Image)
             image_label.grid(row=1, column=1, pady=1)
             info_frame = ctk.CTkFrame(Pr_Top, fg_color="transparent")
             info_frame.grid(row=2, column=1, pady=20)
+            #=============================[User Details Frame]==============================
             Pencil_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Pencil.png"), light_image=Image.open("Window_Images/Pencil.png"), size=(25, 25))
-            Username = "Boudi425"
+            Username = Data_load["name"]
             username_label = ctk.CTkLabel(info_frame, text=Username, **Styles.label_styles["Menu_Labels2"])
             username_label.grid(row=0, column=0, padx=(0, 0))
-            username_btn = ctk.CTkButton(info_frame, text="",image=Pencil_Image, width=32, height=32, **Styles.button_styles["Quick"])
+            
+            username_btn = ctk.CTkButton(info_frame, text="",image=Pencil_Image,
+                                        width=32, height=32,
+                                        **Styles.button_styles["Quick"],
+                                        command=Change_Name)
             username_btn.grid(row=0, column=1)
-            Email = "b*******@gmail.com"
-            Email_label = ctk.CTkLabel(info_frame, text=Email, **Styles.label_styles["Menu_Labels2"])
+            
+            Current_Email = Side_Functions.mask_email(Cur.execute("SELECT Email FROM Users WHERE ID = ?",
+                                            (Data_load["ID"],))
+                                            .fetchone()[0])
+            
+            Email_label = ctk.CTkLabel(info_frame, text=Current_Email, **Styles.label_styles["Menu_Labels2"])
             Email_label.grid(row=1, column=0, padx=(0, 0), pady=10)
-            Email_btn = ctk.CTkButton(info_frame, text="",image=Pencil_Image, width=32, height=32, **Styles.button_styles["Quick"])
+            
+            Email_btn = ctk.CTkButton(info_frame, text="",image=Pencil_Image,
+                                    width=32, height=32, 
+                                    **Styles.button_styles["Quick"],
+                                    command=Change_Email)
             Email_btn.grid(row=1, column=1, pady=10)
             
+            #=============================[Upload\Save Buttons]==============================
             Update_Image_img = ctk.CTkImage(dark_image=Image.open("Window_Images/Upload.png"), size=(28, 28))
             Update_Image_btn = ctk.CTkButton(Pr_Top, text="Upload Image",
                                             image=Update_Image_img, compound="left",
@@ -118,13 +223,23 @@ class mainMenu(ctk.CTkFrame):
                                             **Styles.button_styles["Second"], command=choose_image)
             Update_Image_btn.grid(row=3, column=1, pady=30)
             
-            Save_btn = ctk.CTkButton(Pr_Top, text="Save",width=50, height=25, **Styles.button_styles["Second"], command=lambda: Save)
+            Save_btn = ctk.CTkButton(Pr_Top, text="Save",width=50, height=25, **Styles.button_styles["Second"],
+                                    command=lambda: Save)
             Save_btn.grid(row=4, column=1)
+            
         def Open_Settings(section="Settings"):
             switch_toTab(section)
             Settings_Top = ctk.CTkToplevel()
             Settings_Top.geometry("550x400")
             ctk.CTkLabel(Settings_Top, text="Settings", **Styles.label_styles["Menu_title"]).place(x=200, y=8)
+            #=================================================================
+            def update_slider_value(value):
+                slider_label.configure(text=f"Font Size: {int(value)}")
+            for key, item in Top_labels.items():
+                l = ctk.CTkLabel(Settings_Top, text=key, image=item["Image"], compound="left", **Styles.label_styles["Top_Labels"])
+                l.place(x=item["x"], y=item["y"])
+            #=================================================================
+            
             Top_labels = {
                 " Theme:": {
                     "Image": ctk.CTkImage(dark_image=Image.open("Window_Images/Theme.png"), size=(28,28)),
@@ -167,11 +282,6 @@ class mainMenu(ctk.CTkFrame):
                     "x": 245
                 }
             }
-            def update_slider_value(value):
-                slider_label.configure(text=f"Font Size: {int(value)}")
-            for key, item in Top_labels.items():
-                l = ctk.CTkLabel(Settings_Top, text=key, image=item["Image"], compound="left", **Styles.label_styles["Top_Labels"])
-                l.place(x=item["x"], y=item["y"])
             
             Mode_Switch = ctk.CTkSwitch(Settings_Top,
                                         onvalue="dark", offvalue="light", **Styles.Switches["Switch1"])
@@ -335,4 +445,3 @@ class mainMenu(ctk.CTkFrame):
             ctk.CTkLabel(Rate_Frame, text="Welcome to part 3!!", **Styles.label_styles["Menu_Labels"]).place(x=469, y=276)
     def cleanup_exit(self):
         self.destroy()
-        

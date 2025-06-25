@@ -1,15 +1,14 @@
 import json
 import os 
 class user_session:
-    def __init__(self, ID, name, age, weight, height, Activity):
+    def __init__(self, ID, name, age, weight, height, Activity, Image=None):
         self.ID = ID
         self.name = name
         self.age = age
         self.weight = weight
         self.height = height
         self.Activity = Activity
-        
-
+        self.Image = Image
 
 def save_session(session):
     with open("User_Out_Data/Session.json", "w") as f:
