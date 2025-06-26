@@ -5,6 +5,9 @@ import Side_Functions
 from User_session import load_session, save_settings, load_user_Settings, user_session, UserSettings
 from PIL import Image
 import sqlite3
+import pandas as pd
+import matplotlib as plt
+
 from path_setup import get_data_path
 
 Conn, Cur = Side_Functions.openData(get_data_path("Users_Data.db"))
@@ -151,6 +154,7 @@ class mainMenu(ctk.CTkFrame):
                     else:
                         Name_Top.destroy()      
                         username_label.configure(text=Name.get())
+                        
                 ctk.CTkLabel(Name_Top, text="Enter the Name that you want it:",
                             **Styles.label_styles["Menu_Labels2"]).grid(row=0, column=1, pady=10)
                 ctk.CTkEntry(Name_Top, textvariable=Name,
@@ -418,11 +422,13 @@ class mainMenu(ctk.CTkFrame):
             self.allSidebar_buttons[section].configure(image=self.sideBar_Btn[section]["Icon_path_Active"], 
                                                 fg_color=self.sideBar_Btn[section]["Active_color"]
                                                 )
+        #========================================================================================================
         def Create_Calories_Frame(section="Calories"):
             switch_toSidebar(section)
             Cal_Frame = ctk.CTkFrame(self.in_frame, border_color="white", border_width=2)
             self.switch_frame(Cal_Frame)
             ctk.CTkLabel(Cal_Frame, text="Welcome to part 3!", **Styles.label_styles["Menu_Labels"]).place(x=469, y=276)
+        #============================================================================================================
         def Create_myPlan_Frame(section="My Plan"):
             switch_toSidebar(section)
             myPlan_Frame = ctk.CTkFrame(self.in_frame, border_color="white", border_width=2)

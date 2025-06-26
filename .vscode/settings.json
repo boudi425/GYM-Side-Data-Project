@@ -9,6 +9,7 @@
         "onvalue",
         "padx",
         "pady",
+        "putalpha",
         "relheight",
         "relwidth",
         "relx",

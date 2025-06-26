@@ -5,6 +5,7 @@ import secrets
 import sqlite3
 from PIL import Image, ImageDraw
 import random
+import requests
 
 def mask_email(email):
     name, domain = email.split("@")
@@ -75,3 +76,41 @@ def make_circle_image(path, size=(100, 100)):
     # Apply the mask to create circular image
     img.putalpha(mask)
     return img
+
+def Get_Malnutrition(Food_Query, grams):
+    with open("User_Out_Data/Api_Key.txt") as api_key:
+        api_key = api_key.read()
+    search = requests.get(f"https://api.nal.usda.gov/fdc/v1/foods/search?query={Food_Query}&api_key={api_key}").json()
+    fdc_id = search["foods"][0]["fdcId"]
+    
+    food = requests.get(f"https://api.nal.usda.gov/fdc/v1/food/{fdc_id}?api_key={api_key})").json()
+    
+    nutrients = {n["nutrientName"]: n["value"] for n in food["foodNutrients"]}
+    Cal = round((nutrients.get("Energy (Atwater General Factors)", 0) / 100) * grams, 2)
+    protein = round((nutrients.get('Protein', 0) / 100) * grams, 2)
+    carbs = round((nutrients.get('Carbohydrate, by difference', 0) / 100) * grams, 2)
+    fats = round((nutrients.get('Total lipid (fat)', 0) / 100) * grams, 2)
+    
+    return {
+        "food": Food_Query,
+        "grams": grams,
+        "Calories": Cal,
+        "Protein": protein,
+        "Carbs": carbs,
+        "Fats": fats
+    }
+
+def search_foods(query, choice, limit=5):
+    with open("User_Out_Data/Api_Key.txt") as api_key:
+        api_key = api_key.read()
+    response = requests.get(f"https://api.nal.usda.gov/fdc/v1/foods/search?query={query}&pageSize={limit}&api_key={api_key}")
+    foods = response.get('foods', [])
+    if not foods:
+        return []
+    
+    results = []
+    for food in foods:
+        results.append({
+            f"{food["description"]}": food["fdcId"]
+        })
+    return results
