@@ -8,7 +8,8 @@ IF NOT EXISTS Users
     Body_Weight INTEGER,
     Body_Height INTEGER,
     Activity TEXT,
-    Age INTEGER
+    Age INTEGER,
+    Full_Logged TEXT
 );
 
 CREATE TABLE
@@ -39,6 +40,18 @@ IF NOT EXISTS Program_Data
     Program_Choice TEXT,
     FOREIGN KEY
 (User_id) REFERENCES Users
+(ID)
+);
+
+CREATE TABLE
+IF NOT EXISTS userPlan
+(
+    Plan_ID INTEGER PRIMARY KEY,
+    User_ID INTEGER,
+    Calories_Plan TEXT,
+    Exercise_Plan TEXT,
+    FOREIGN KEY
+(User_ID) REFERENCES Users
 (ID)
 );
 

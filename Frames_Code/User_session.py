@@ -49,3 +49,22 @@ def load_user_Settings(ID):
             "Notifications": False,
             "Data": False
         }
+        
+class UserPlan:
+    def __init__(self, Plan, targetGoal):
+        self.Plan = Plan
+        self.targetGoal = targetGoal
+
+        
+def save_Plan(ID, userSelection):
+    os.makedirs("User_Out_Data", exist_ok=True)
+    with open(f"User_Out_Data/User{ID}_Plan.json", "w") as f:
+        json.dump(userSelection.__dict__, f, indent=4)
+
+def load_user_plan(ID):
+    try:
+        with open(f"User_Out_Data/User{ID}_Plan.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Default settings
+        return None
