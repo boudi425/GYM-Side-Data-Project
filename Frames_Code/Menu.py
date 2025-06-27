@@ -425,7 +425,23 @@ class mainMenu(ctk.CTkFrame):
                                                 )
         #========================================================================================================
         def Create_Calories_Frame(section="Calories"):
+            Data_load = load_session()
+            switch_toSidebar(section)
+            Cal_Frame = ctk.CTkFrame(self.in_frame, border_color="white", border_width=2)
+            self.switch_frame(Cal_Frame)
+            Cal_Frame.grid_columnconfigure((0, 1, 2), weight=1)
+            Cal_mainImage = ctk.CTkImage(dark_image=Image.open("Window_Images/Main_Cal.png"), size=(40, 40))
+            ctk.CTkLabel(Cal_Frame, text=" Calorie Section", image=Cal_mainImage, compound="left",
+                        **Styles.label_styles["Menu_subtitle"]).grid(row=0, column=1, pady=10)
+            #===========================================================================================================
+            
             def Plan_starter():
+                def chosen_planDataLoad(Plan, typeGoal):
+                    Current_Plan = UserPlan(Plan, typeGoal)
+                    save_Plan(*Current_Plan)
+                    for frame in Cal_Frame.winfo_children():
+                        frame.destroy()
+                    load_mainCalFrame()
                 ctk.CTkButton(Cal_Frame, text="Make my Own Plan", **Styles.button_styles["Quick"],
                         command=lambda: chosen_planDataLoad(None, typeGoal="Nothing"))
                 Calories = Cur.execute("SELECT Calories FROM Program_Data WHERE User_id = ?", (Data_load["ID"],)).fetchone()[0]
@@ -532,24 +548,79 @@ class mainMenu(ctk.CTkFrame):
                                     text="Choose",
                                     width=110, height=35,
                                     **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan3", "Gain Weight")).grid(row=5, column=1, pady=15)
-            def load_mainCalFrame():
-                pass
-            def chosen_planDataLoad(Plan, typeGoal):
-                Current_Plan = UserPlan(Plan, typeGoal)
-                save_Plan(*Current_Plan)
-                for frame in Cal_Frame.winfo_children():
-                    frame.destroy()
-                load_mainCalFrame()
-            Data_load = load_session()
-            switch_toSidebar(section)
-            Cal_Frame = ctk.CTkFrame(self.in_frame, border_color="white", border_width=2)
-            self.switch_frame(Cal_Frame)
-            Cal_Frame.grid_columnconfigure((0, 1, 2), weight=1)
-            Cal_mainImage = ctk.CTkImage(dark_image=Image.open("Window_Images/Main_Cal.png"), size=(40, 40))
-            ctk.CTkLabel(Cal_Frame, text=" Calorie Section", image=Cal_mainImage, compound="left",
-                        **Styles.label_styles["Menu_subtitle"]).grid(row=0, column=1, pady=10)
+                                    command= lambda: chosen_planDataLoad("Plan3", "Gain Weight")
+                                    ).grid(row=5, column=1, pady=15)
+            #===============================================================================================================
             
+            def load_mainCalFrame():
+                def Open_mealSection(Section):
+                    pass
+                listOfMeals = ["Breakfast", "Lunch", "Dinner", "Snacks"]
+                self.Meals = {
+                    "Breakfast" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []},
+                    "Lunch" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []},
+                    "Dinner" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []},
+                    "Snacks" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []}
+                    }
+                self.Taken_Cal = ctk.IntVar()
+                self.Remained_Cal = ctk.IntVar()
+                canvas = ctk.CTkCanvas(Cal_Frame, width=200, height=200, bg="White", highlightthickness=0)
+                canvas.grid(row=0, column=0, pady=15, padx=10)
+                canvas.create_oval(20, 20, 130, 130, fill="grey")
+                results = Cur.execute("SELECT Calories FROM Program_Data WHERE ID = ?", (Data_load["ID"])).fetchone()[0]
+                Calories = json.loads(results) 
+                Plan_Data = load_user_plan()
+                for i in range(3):
+                    if Plan_Data["Plan"] == f"Plan{i+1}":
+                        if Plan_Data["targetGoal"] == "Maintain My Weight":
+                            ctk.CTkLabel(Cal_Frame, text=f"Target Calories:\n {Calories[0]}"
+                                        , **Styles.label_styles["Tiny_Labels"]).place(x=100, y=125)
+                            Cal_Taken = ctk.CTkLabel(Cal_Frame, text=f"Taken Calories: \n{self.Taken_Cal}",
+                                                    **Styles.label_styles["Tiny_Labels"])
+                            Cal_Taken.place(x=100, y=150)
+                            self.Taken_Cal.set(0)
+                            Cal_remained = ctk.CTkLabel(Cal_Frame, text=f"Remaining Calories: \n{self.Remained_Cal}",
+                                                    **Styles.label_styles["Tiny_Labels"])
+                            Cal_remained.place(x=100, y=175)
+                            self.Remained_Cal.set(Calories[0])
+                        elif Plan_Data["targetGoal"] == "Lose Weight":
+                            ctk.CTkLabel(Cal_Frame, text=f"Target Calories:\n {Calories[0]}"
+                                        , **Styles.label_styles["Tiny_Labels"]).place(x=100, y=125)
+                            Cal_Taken = ctk.CTkLabel(Cal_Frame, text=f"Taken Calories: \n{self.Taken_Cal}",
+                                                    **Styles.label_styles["Tiny_Labels"])
+                            Cal_Taken.place(x=100, y=150)
+                            self.Taken_Cal.set(0)
+                            Cal_remained = ctk.CTkLabel(Cal_Frame, text=f"Remaining Calories: \n{self.Remained_Cal}",
+                                                    **Styles.label_styles["Tiny_Labels"])
+                            Cal_remained.place(x=100, y=175)
+                            self.Remained_Cal.set(Calories[0])
+                            
+                        elif Plan_Data["targetGoal"] == "Gain Weight":
+                            ctk.CTkLabel(Cal_Frame, text=f"Target Calories:\n {Calories[0]}"
+                                        , **Styles.label_styles["Tiny_Labels"]).place(x=100, y=125)
+                            Cal_Taken = ctk.CTkLabel(Cal_Frame, text=f"Taken Calories: \n{self.Taken_Cal}",
+                                                    **Styles.label_styles["Tiny_Labels"])
+                            Cal_Taken.place(x=100, y=150)
+                            self.Taken_Cal.set(0)
+                            Cal_remained = ctk.CTkLabel(Cal_Frame, text=f"Remaining Calories: \n{self.Remained_Cal}",
+                                                    **Styles.label_styles["Tiny_Labels"])
+                            Cal_remained.place(x=100, y=175)
+                            self.Remained_Cal.set(Calories[0])
+                
+                plus_image = ctk.CTkImage(dark_image=Image.open("Window_Images/plus.png"), size=(24, 24))
+                for i, (Section, Details) in enumerate(self.Meals.items()):
+                    F = ctk.CTkFrame(Cal_Frame, width=354, height=108, bg_color="grey")
+                    F.grid(row=0 + i, column=2, pady=10)
+                    F.grid_columnconfigure((0, 1, 2), weight=1)
+                    F.grid_rowconfigure((0, 1, 2), weight=1)
+                    ctk.CTkLabel(F, text=Section, **Styles.label_styles["Menu_Labels"]).grid(row=0, column=0, pady=5, padx=5)
+                    ctk.CTkLabel(F, text=", ".join(Details["Name"]),  **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5, padx=5)
+                    
+                    ctk.CTkButton(F, text=" Add Meal",
+                                image=plus_image, compound="left",
+                                **Styles.label_styles["Menu_Labels"],
+                                command= lambda: Open_mealSection(Section)
+                                ).grid(row=2, column=2, pady=5, padx=(5, 10))
             if load_user_plan(Data_load["ID"]):
                 Plan_starter()
             else:
