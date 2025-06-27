@@ -182,3 +182,6 @@ User_Out_Data/*
 
 # CustomTkinter user folders
 User_Out_Data/
+
+# Ignore all Python byte-code caches
+**/__pycache__/
