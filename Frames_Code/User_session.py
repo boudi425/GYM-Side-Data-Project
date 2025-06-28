@@ -68,3 +68,23 @@ def load_user_plan(ID):
     except FileNotFoundError:
         # Default settings
         return None
+    
+class UserMealData:
+    def __init__(self, Date, mealType, foodNames, grams, Kcal):
+        self.Date = Date
+        self.mealType = mealType
+        self.foodNames = foodNames
+        self.grams =  grams
+        self.Kcal = Kcal
+    
+def saveMealData(ID, mealType, Data):
+    os.makedirs("User_Out_Data", exist_ok=True)
+    with open(f"User_Out_Data/User{ID}_{mealType}.json", "w") as f:
+        json.dump(ID.__dict__, f, indent=4)
+def loadMealData(ID, mealType):
+    try:
+        with open(f"User_Out_Data/User{ID}_{mealType}.json", "r") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        # Default settings
+        return None

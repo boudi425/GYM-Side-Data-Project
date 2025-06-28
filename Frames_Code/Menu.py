@@ -442,6 +442,7 @@ class mainMenu(ctk.CTkFrame):
                     for frame in Cal_Frame.winfo_children():
                         frame.destroy()
                     load_mainCalFrame()
+                #===============Testing
                 ctk.CTkButton(Cal_Frame, text="Make my Own Plan", **Styles.button_styles["Quick"],
                         command=lambda: chosen_planDataLoad(None, typeGoal="Nothing"))
                 Calories = Cur.execute("SELECT Calories FROM Program_Data WHERE User_id = ?", (Data_load["ID"],)).fetchone()[0]
@@ -449,119 +450,94 @@ class mainMenu(ctk.CTkFrame):
                 Actual_Burn_cal = Cur.execute("SELECT TDEE FROM Program_Users WHERE User_id = ?", (Data_load["ID"])).fetchone()[0]
                 Main_Calories = json.loads(Calories)
                 
-                for i, Calories_Plan in enumerate(Main_Calories):
-                    Plan_Frame = ctk.CTkFrame(Cal_Frame,
-                                        width=230, height=250,
-                                        border_color="#9FA8DA", border_width=2)
-                    Plan_Frame.grid(row=1, column=i, pady=15)
-                    Plan_Frame.grid_columnconfigure((0, 1, 2), weight=1)
-                    ctk.CTkLabel(Plan_Frame, text=f"Plan{i+1}",
-                                **Styles.label_styles["Menu_Labels"]).grid(row=0, column=0, pady=10, padx=10)
-                    ctk.CTkLabel(Plan_Frame, text=f"Target Calories: {Calories_Plan}").grid(row=1, column=0, pady=5, padx=10)
+                for i, Needed_Calories in enumerate(Main_Calories):
+                    Plan_Frame = ctk.CTkFrame(Cal_Frame, width=175, height=400, border_color="#9FA8DA", border_width=2)
+                    Plan_Frame.grid(row=1, column=i, padx=10, pady=15, sticky="n")
+                    Plan_Frame.grid_columnconfigure(list(range(6)), weight=1)
+                    
+                    ctk.CTkLabel(Plan_Frame, text=f"Plan{i+1}", **Styles.label_styles["Menu_Labels_Tiny"]).grid(row=0, column=0, pady=(10, 5))
+                    ctk.CTkLabel(Plan_Frame, text=f"Target Calories: {Needed_Calories}", **Styles.label_styles["Menu_Labels_Tiny"]).grid(row=1, column=0)
+                    
+                    burn_label = ""
+                    cardio_label = ""
+                    note_label = ""
+                    rate_label = ""
+                    plan_id = f"Plan{i+1}"
+                    command_goal = ""
                     
                     if Diet_Goal == "Maintain My Weight":
-                        ctk.CTkLabel(Plan_Frame, text="Target Burned Calories: 220",
-                                    **Styles.label_styles["Menu_Labels"]).grid(row=2, column=0, pady=5, padx=10)
-                        ctk.CTkLabel(Plan_Frame, text="Note: Just Eat Healthy and stick to your Target Calories",
-                                    **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                        ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan", "Maintain My Weight"))
+                        burn_label = "Target Burned Calories: 220"
+                        note_label = "Eat clean, healthy food and stick to your target calories"
+                        command_goal = "Maintain My Weight"
                         
                     elif Diet_Goal == "Lose Weight":
-                        Target_burn =  Actual_Burn_cal - Calories_Plan
-                        ctk.CTkLabel(Plan_Frame, text=f"Target Burned Calories: {Target_burn - 15}",
-                                    **Styles.label_styles["Menu_Labels"]).grid(row=2, column=0, pady=5, padx=10)
-                        if Target_burn < 300:
-                            noteText = "Burn From Running, Exercises Even Walking!, Just Make sure to Relax!"
-                            ctk.CTkLabel(Plan_Frame, text=f"Note: {noteText}",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                            ctk.CTkLabel(Plan_Frame, text="0.25 kg loss per week",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5, padx=10)
-                            ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan1", "Lose Weight")).grid(row=5, column=1, pady=15)
-                            
-                        elif Target_burn > 300 and Target_burn >= 750:
-                            noteText = "Going to be tough but with something like hit cardio will do fine!"
-                            ctk.CTkLabel(Plan_Frame, text=f"Note: {noteText}",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                            ctk.CTkLabel(Plan_Frame, text="0.30 - 0.5 kg loss per week",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5, padx=10)
-                            ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan2", "Lose Weight")).grid(row=5, column=1, pady=15)
-                            
-                        elif Target_burn >= 750:
-                            noteText = "This is Extreme Weight Loss, Know that doing this for more than two weeks may affect health!"
-                            ctk.CTkLabel(Plan_Frame, text=f"Note: {noteText}",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                            ctk.CTkLabel(Plan_Frame, text="0.75kg -- 1kg loss per week",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5, padx=10)
-                            ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan3", "Lose Weight")).grid(row=5, column=1, pady=15)
+                        Target_burn = Needed_Calories - Actual_Burn_cal
+                        burn_label = f"Target Burned Calories: {Target_burn - 15}"
+                        command_goal = "Lose Weight"
+
+                        if Target_burn <= 300:
+                            note_label = "Burn calories through running, exercise—even walking!"
+                            rate_label = "0.25 kg loss per week"
+                            plan_id = "Plan1"
+
+                        elif Target_burn <= 750:
+                            note_label = "It's going to be tough, but HIIT or similar workouts will help."
+                            rate_label = "0.30 - 0.5 kg loss per week"
+                            plan_id = "Plan2"
+
+                        else:
+                            note_label = "This is an intense program—avoid doing it for more than two weeks straight."
+                            rate_label = "0.75kg -- 1kg loss per week"
+                            plan_id = "Plan3"
                             
                     elif Diet_Goal == "Gain Weight":
-                        Calories_Diff = Calories_Plan - Actual_Burn_cal
-                        ctk.CTkLabel(Plan_Frame, text=f"Cardio if wanted: 15 - 30 min cardio",
-                                    **Styles.label_styles["Menu_Labels"]).grid(row=2, column=0, pady=5, padx=10)
-                        if Calories_Plan < 300:
-                            noteText = "Make sure your diet is full of Carbs and Proteins!"
-                            ctk.CTkLabel(Plan_Frame, text=f"Note: {noteText}",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                            ctk.CTkLabel(Plan_Frame, text="0.25 kg gain per week",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5, padx=10)
-                            ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan1", "Gain Weight")).grid(row=5, column=1, pady=15)
-                            
-                        elif Calories_Plan > 300 and Calories_Diff >= 750:
-                            noteText = "Make sure you are clean in terms of food sources and don't overdo yourself!"
-                            ctk.CTkLabel(Plan_Frame, text=f"Note: {noteText}",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                            ctk.CTkLabel(Plan_Frame, text="0.30 - 0.5 kg gain per week",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5, padx=10)
-                            ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan2", "Gain Weight")).grid(row=5, column=1, pady=15)
-                            
-                        elif Calories_Diff >= 750:
-                            noteText = "This will gain but will gain fats as much as muscles so make sure to checkout our lost plans after!"
-                            ctk.CTkLabel(Plan_Frame, text=f"Note: {noteText}",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5, padx=10)
-                            ctk.CTkLabel(Plan_Frame, text="0.75kg -- 1kg gain per week",
-                                        **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5, padx=10)
-                            ctk.CTkButton(Plan_Frame,
-                                    text="Choose",
-                                    width=110, height=35,
-                                    **Styles.button_styles["Quick"],
-                                    command= lambda: chosen_planDataLoad("Plan3", "Gain Weight")
-                                    ).grid(row=5, column=1, pady=15)
+                        Calories_Diff = Needed_Calories - Actual_Burn_cal
+                        cardio_label = "Cardio if wanted: 15 - 30 min cardio"
+                        command_goal = "Gain Weight"
+
+                        if Calories_Diff <= 300:
+                            note_label = "Prioritize carbs and protein in your meals."
+                            rate_label = "0.25 kg gain per week"
+                            plan_id = "Plan1"
+
+                        elif Calories_Diff <= 750:
+                            note_label = "Choose clean food sources and avoid overexertion."
+                            rate_label = "0.30 - 0.5 kg gain per week"
+                            plan_id = "Plan2"
+
+                        else:
+                            note_label = "Expect both muscle and fat gain—check out our cutting plans afterward!"
+                            rate_label = "0.75kg -- 1kg gain per week"
+                            plan_id = "Plan3"
+                    if burn_label:
+                        ctk.CTkLabel(Plan_Frame, text=burn_label, **Styles.label_styles["Menu_Labels_Tiny"]).grid(row=2, column=0, pady=5)
+                    elif cardio_label:
+                        ctk.CTkLabel(Plan_Frame, text=cardio_label, **Styles.label_styles["Menu_Labels_Tiny"]).grid(row=2, column=0, pady=5)
+                    ctk.CTkLabel(
+                        Plan_Frame,
+                        text=f"Note: {note_label}",
+                        wraplength=160,
+                        height=50,
+                        **Styles.label_styles["Menu_Labels_Tiny"]
+                    ).grid(row=3, column=0, pady=5)
+                    if rate_label:
+                        ctk.CTkLabel(Plan_Frame, text=rate_label, **Styles.label_styles["Menu_Labels_Tiny"]).grid(row=4, column=0, pady=5)
+                    else:
+                        ctk.CTkLabel(Plan_Frame, text="", height=20).grid(row=4, column=0)  # Spacer
+                    ctk.CTkButton(
+                        Plan_Frame,
+                        text="Choose",
+                        width=110,
+                        height=35,
+                        **Styles.button_styles["Quick"],
+                        command=lambda plan=plan_id, goal=command_goal: chosen_planDataLoad(plan, goal)
+                    ).grid(row=5, column=0, pady=(10, 20))
             #===============================================================================================================
             
             def load_mainCalFrame():
                 def Open_mealSection(Section):
                     pass
                 listOfMeals = ["Breakfast", "Lunch", "Dinner", "Snacks"]
-                self.Meals = {
-                    "Breakfast" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []},
-                    "Lunch" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []},
-                    "Dinner" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []},
-                    "Snacks" : {"Names": [], "Grams": [], "Protein": [], "Carbs": [], "Fats": [], "Kcal": []}
-                    }
                 self.Taken_Cal = ctk.IntVar()
                 self.Remained_Cal = ctk.IntVar()
                 canvas = ctk.CTkCanvas(Cal_Frame, width=200, height=200, bg="White", highlightthickness=0)
