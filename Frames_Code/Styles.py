@@ -138,6 +138,11 @@ label_styles = {
         "corner_radius": 8,
         "font": ("Segoe UI", 16, "bold")
     },
+    "Menu_Labels_Tiny": {
+        "text_color": "#398FFF",
+        "corner_radius": 8,
+        "font": ("Segoe UI", 12, "bold")
+    },
     "Top_Labels": {
         "text_color": "#1A9FB1",
         "corner_radius": 8,
