@@ -2,13 +2,13 @@ import customtkinter as ctk
 import Styles
 from tkinter import filedialog
 import Side_Functions
-from User_session import load_session, saveMealData, load_user_plan, load_user_Settings, save_Plan, save_settings, UserMealData, UserSettings, UserPlan, loadMealData
+import User_session as us
 from PIL import Image
 import sqlite3
 import pandas as pd
 import matplotlib as plt
 import json
-
+import datetime
 from path_setup import get_data_path
 
 Conn, Cur = Side_Functions.openData(get_data_path("Users_Data.db"))
@@ -19,7 +19,7 @@ in_frame = ctk.CTkFrame(mainMenu_Window, width=768, height=520, border_color="wh
 in_frame.place(x=220, y=70)
 class tabView:
     def __init__(self):
-        self.Data_load = load_session()
+        self.Data_load = us.load_session()
         self.allTab_buttons = {}
     
     def Error_Popup_Window(self, Label_Text, Button_Text):
@@ -360,8 +360,8 @@ class tabView:
             Notifications=False,
             Data_History=False
         ):
-            Data = UserSettings(Mode_Choice, Default_Colors, Font_Size, Font_Type, Notifications, Data_History)
-            save_settings(self.Data_load["ID"], *Data)
+            Data = us.UserSettings(Mode_Choice, Default_Colors, Font_Size, Font_Type, Notifications, Data_History)
+            us.save_settings(self.Data_load["ID"], *Data)
     def Check_if_sure(self):
             self.switch_toTab("Logout")
             Sure_Windows = ctk.CTkToplevel()
@@ -378,7 +378,7 @@ class tabView:
         mainMenu_Window.destroy()
 class sideBar:
     def __init__(self):
-        self.Data_load = load_session()
+        self.Data_load = us.load_session()()
         self.allSidebar_buttons = {}
         
     def switch_frame(self, frame): 
@@ -458,15 +458,24 @@ class sideBar:
                                             )
 class Calories_Section:
     def __init__(self, mainCalories, actualCalories, dietGoal):
-        self.Data_load = load_session()
+        self.Data_load = us.load_session()()
         self.mainCalories = mainCalories
         self.actualCalories = actualCalories
         self.dietGoal = dietGoal
         self.Cal_Frame = ctk.CTkFrame(in_frame, border_color="white", border_width=2)
+        
+    def Error_Popup_Window(self, Label_Text, Button_Text):
+        root = ctk.CTkToplevel()
+        root.geometry("500x150")
+        root.title("Error")
+        ctk.CTkLabel(root, text=Label_Text, **Styles.label_styles["Menu_Labels2"]).pack()
+        ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy).pack(pady=10)
+        root.attributes("-topmost", True)
+        
     def showPlanStarter(self):
         def chosen_planDataLoad(Plan, typeGoal):
-            Current_Plan = UserPlan(Plan, typeGoal)
-            save_Plan(*Current_Plan)
+            Current_Plan = us.UserPlan(Plan, typeGoal)
+            us.save_Plan(*Current_Plan)
             for frame in self.Cal_Frame.winfo_children():
                 frame.destroy()
             self.load_mainCalFrame()
@@ -672,7 +681,7 @@ class Calories_Section:
             ).place(x=210, y=75)
     def Open_mealSection(self, section, Type):
         if Type == "Details":
-            Details = loadMealData(self.Data_load["ID"], section)
+            Details = us.loadMealData(self.Data_load["ID"], section)
             if Details:
                 Top_Meal_Details = ctk.CTkToplevel()
                 Top_Meal_Details.geometry("600x600")
@@ -688,15 +697,107 @@ class Calories_Section:
                             ).place(x=300, y=500)
                 ctk.CTkButton(Top_Meal_Details, text="Close", **Styles.button_styles["Quick"], command=Top_Meal_Details.destroy)
         elif Type == "New Meal":
-            self.openAddMeals(section)
-    def openAddMeals(self, section):
+            self.openNewMeals(section)
+            
+    def openNewMeals(self, section):
+        Search_Query = ctk.StringVar(value="Chicken")
+        Total_Kcal = ctk.IntVar(value=0)
+        Total_Protein = ctk.IntVar(value=0)
+        Total_Carbs = ctk.IntVar(value=0)
+        Total_Fats = ctk.IntVar(value=0)
+        all_Meals = ctk.StringVar(value="No Meals Added")
         for widget in self.Cal_Frame:
-            widget.destroy()
+            if not isinstance(widget, ctk.CTkCanvas):
+                widget.destroy()
+                
         ctk.CTkLabel(self.Cal_Frame, text=f"Meal: {section}").grid(row=0, column=0, sticky="n")
+        self.Now_Made_Frame = ctk.CTkFrame(self.Cal_Frame,
+                                        width=369,
+                                        height=128,
+                                        border_color="white",
+                                        border_width=2).grid(row=0, column=1, pady=10)
+        ctk.CTkLabel(self.Now_Made_Frame, text="Your Meal: ",**Styles.label_styles["Menu_Labels"]).grid(row=0, column=0, pady=3)
+        ctk.CTkLabel(self.Now_Made_Frame, text=f"Total Kcal: {Total_Kcal.get()}", **Styles.label_styles["Menu_Labels"]
+                    ).grid(row=0, column=1, pady=3)
+        ctk.CTkLabel(self.Now_Made_Frame, text=all_Meals, **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
         
-        Now_Made_Frame = ctk.CTkFrame(self.Cal_Frame,
-                                    width=369,
-                                    height=128,
-                                    border_color="white",
-                                    border_width=2).grid(row=0, column=1, pady=10)
-        ctk.CTkButton(self.Cal_Frame, text="Add", width=110, height=40, **Styles.button_styles["Quick"]).grid(row=1, column=1, pady=10)
+        ctk.CTkButton(self.Cal_Frame, text="Add", width=110, height=40, **Styles.button_styles["Quick"],
+                    command=addMeal).grid(row=1, column=1, pady=10)
+            
+        edit_btn = ctk.CTkButton(self.Cal_Frame, text="Edit", width=110, height=40, **Styles.button_styles["Quick"], state="readonly",
+                    command=editMeal)
+        edit_btn.grid(row=2, column=1, pady=10)
+        
+        rem_btn = ctk.CTkButton(self.Cal_Frame, text="Remove", width=110, height=40, **Styles.button_styles["Quick"], state="readonly",
+                    command=removeMeal)
+        rem_btn.grid(row=3, column=1, pady=10)
+        if all_Meals.get() != "No Meals Added":
+            edit_btn.configure(state="normal")
+            rem_btn.configure(state="normal")
+        def addMeal():
+            def get_search(Results):
+                Results = Side_Functions.search_foods(Search_Query.get())
+            Search_Results = None
+            ctk.CTkEntry(self.Cal_Frame,
+                        textvariable=Search_Query, 
+                        width=250, height=39,
+                        **Styles.entry_styles["Query"]
+                        ).grid(row=0, column=0, pady=5)
+            ctk.CTkButton(self.Cal_Frame, width=30, height=30, image="", compound="", **Styles.label_styles["Quick"],
+                        command=lambda: get_search(Search_Results))
+            Query_Frame_Shown = ctk.CTkFrame(self.Cal_Frame, width=300, height=385).grid(row=1, column=0, pady=10)
+            for Item in Search_Results:
+                for i, (key, value) in enumerate(Item.items()):
+                    ctk.CTkLabel(Query_Frame_Shown, text=key, wraplength=100, **Styles.label_styles["Menu_Labels"]
+                                ).grid(row=i, column=0, pady=5)
+                    ctk.CTkLabel(Query_Frame_Shown, text=f"ID: {value}", **Styles.label_styles["Menu_Labels_Tiny"]
+                                ).grid(row=0, column=1, sticky="ne")
+                    ctk.CTkButton(Query_Frame_Shown, text="Choose", **Styles.button_styles["Quick"],
+                                command=lambda: self.showTopDetails(key, section)).grid(row=1, column=1, pady=5)
+        def removeMeal():
+            pass
+        def editMeal():
+            pass
+    def showTopDetails(self, foodName, section):
+        Kcal = ctk.StringVar(value="")
+        Proteins = ctk.StringVar(value="")
+        Carbs = ctk.StringVar(value="")
+        Fats = ctk.StringVar(value="")
+        
+        chosen_foodTop = ctk.CTkToplevel()
+        chosen_foodTop.geometry("500x600")
+        chosen_foodTop.title(f"Food: {foodName}")
+        chosen_foodTop.grid_columnconfigure((0, 1, 2), weight=1)
+        vcmd = chosen_foodTop.register(Side_Functions.onlyDigits)
+        
+        ctk.CTkLabel(chosen_foodTop, text=foodName, **Styles.label_styles["Menu_Labels"]).grid(row=0, column=1, pady=5)
+        grams = ctk.IntVar(value=100)
+        entry = ctk.CTkEntry(chosen_foodTop, textvariable=grams, **Styles.entry_styles["Query"])
+        entry._entry.configure(validate="key", validatecommand=(vcmd, "%S"))
+        entry.grid(row=5, column=1, pady=3)
+        
+        allResults = Side_Functions.Get_Malnutrition(foodName, grams)
+
+        Kcal.set(allResults["Calories"])
+        Proteins.set(allResults["Protein"])
+        Carbs.set(allResults["Carbs"])
+        Fats.set(allResults["Fats"])
+        
+        ctk.CTkLabel(chosen_foodTop, text=f"Calories: {Kcal.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
+        
+        ctk.CTkLabel(chosen_foodTop, text=f"Protein: {Proteins.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=2, column=0, pady=5)
+        
+        ctk.CTkLabel(chosen_foodTop, text=f"Carbs: {Carbs.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5)
+        
+        ctk.CTkLabel(chosen_foodTop, text=f"Fats: {Fats.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5)
+        
+        ctk.CTkButton(chosen_foodTop, text="Save", **Styles.button_styles["Quick"], command=submit_entry).grid(row=6, column=1)
+        
+        def submit_entry():
+            if grams == 0:
+                self.Error_Popup_Window("Enter a number!", "Close")
+            elif grams < 0:
+                self.Error_Popup_Window("Enter a positive number!", "Close")
+            else:
+                Final = us.UserMealData(datetime.date.today(), section, foodName, grams, Kcal.get())
+                us.saveDataMeal(self.Data_load["ID"], section, *Final)

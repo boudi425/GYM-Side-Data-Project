@@ -77,7 +77,7 @@ def make_circle_image(path, size=(100, 100)):
     img.putalpha(mask)
     return img
 
-def Get_Malnutrition(Food_Query, grams):
+def Get_Malnutrition(Food_Query, grams=100):
     with open("User_Out_Data/Api_Key.txt") as api_key:
         api_key = api_key.read()
     search = requests.get(f"https://api.nal.usda.gov/fdc/v1/foods/search?query={Food_Query}&api_key={api_key}").json()
@@ -100,7 +100,7 @@ def Get_Malnutrition(Food_Query, grams):
         "Fats": fats
     }
 
-def search_foods(query, choice, limit=5):
+def search_foods(query, limit=5):
     with open("User_Out_Data/Api_Key.txt") as api_key:
         api_key = api_key.read()
     response = requests.get(f"https://api.nal.usda.gov/fdc/v1/foods/search?query={query}&pageSize={limit}&api_key={api_key}")
@@ -114,3 +114,6 @@ def search_foods(query, choice, limit=5):
             f"{food["description"]}": food["fdcId"]
         })
     return results
+
+def only_digits(char):
+    return char.isdigit()

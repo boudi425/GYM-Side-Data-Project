@@ -88,3 +88,11 @@ def loadMealData(ID, mealType):
             return json.load(f)
     except FileNotFoundError:
         return None
+    
+def deleteMealData(ID, mealType):
+    file_path = f"User_Out_Data/User{ID}_{mealType}.json"
+    try:
+        os.remove(file_path)
+        return True
+    except FileNotFoundError:
+        return False

@@ -168,6 +168,13 @@ entry_styles = {
         "corner_radius": 8,
         "text_color": "#333333",
         "font": ("Lato", 28, "bold")
+    },
+    "Query": {
+        "fg_color": "#F5F5F5",
+        "border_color": "#CCCCCC",
+        "corner_radius": 8,
+        "text_color": "#333333",
+        "font": ("Lato", 18, "bold")
     }
 }
 
