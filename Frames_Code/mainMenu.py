@@ -2,7 +2,7 @@ import customtkinter as ctk
 import Styles
 from tkinter import filedialog
 import Side_Functions
-from User_session import load_session, save_settings, load_user_Settings, user_session, UserSettings, UserPlan, save_Plan, load_user_plan
+from User_session import load_session, saveMealData, load_user_plan, load_user_Settings, save_Plan, save_settings, UserMealData, UserSettings, UserPlan, loadMealData
 from PIL import Image
 import sqlite3
 import pandas as pd
@@ -458,6 +458,7 @@ class sideBar:
                                             )
 class Calories_Section:
     def __init__(self, mainCalories, actualCalories, dietGoal):
+        self.Data_load = load_session()
         self.mainCalories = mainCalories
         self.actualCalories = actualCalories
         self.dietGoal = dietGoal
@@ -669,5 +670,33 @@ class Calories_Section:
                 **Styles.label_styles["Menu_Labels"],
                 command=lambda section=Section: self.Open_mealSection(section, "New Meal")
             ).place(x=210, y=75)
-    def Open_mealSection(self, section, type):
-        pass
+    def Open_mealSection(self, section, Type):
+        if Type == "Details":
+            Details = loadMealData(self.Data_load["ID"], section)
+            if Details:
+                Top_Meal_Details = ctk.CTkToplevel()
+                Top_Meal_Details.geometry("600x600")
+                Top_Meal_Details.title(f"{section} Details.")
+                ctk.CTkLabel(Top_Meal_Details, text=f"Data: {Details["Date"]}", **Styles.label_styles["Menu_Labels"]
+                            ).grid(row=0, column=0, pady=5)
+                ctk.CTkLabel(Top_Meal_Details, text=f"Type of Meal: {Details["mealType"]}", **Styles.label_styles["Menu_Labels"]
+                            ).grid(row=1, column=0, pady=5)
+                for i, food in enumerate(Details["foodNames"]):
+                    ctk.CTkLabel(Top_Meal_Details, text=f"Meal: {food}", **Styles.label_styles["Menu_Labels"]
+                                ).grid(row=2 + i, column=0, pady=3)
+                ctk.CTkLabel(Top_Meal_Details, text=f"Total Kcal: {Details["Kcal"]}", **Styles.label_styles["Menu_Labels"]
+                            ).place(x=300, y=500)
+                ctk.CTkButton(Top_Meal_Details, text="Close", **Styles.button_styles["Quick"], command=Top_Meal_Details.destroy)
+        elif Type == "New Meal":
+            self.openAddMeals(section)
+    def openAddMeals(self, section):
+        for widget in self.Cal_Frame:
+            widget.destroy()
+        ctk.CTkLabel(self.Cal_Frame, text=f"Meal: {section}").grid(row=0, column=0, sticky="n")
+        
+        Now_Made_Frame = ctk.CTkFrame(self.Cal_Frame,
+                                    width=369,
+                                    height=128,
+                                    border_color="white",
+                                    border_width=2).grid(row=0, column=1, pady=10)
+        ctk.CTkButton(self.Cal_Frame, text="Add", width=110, height=40, **Styles.button_styles["Quick"]).grid(row=1, column=1, pady=10)
