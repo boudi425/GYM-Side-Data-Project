@@ -149,7 +149,12 @@ label_styles = {
         "font": ("Segoe UI", 20, "bold")
     },
     "Tiny_Labels": {
-        "text_color": "#B6DDE2",
+        "text_color": "#4EF737",
+        "corner_radius": 8,
+        "font": ("Segoe UI", 14, "bold")
+    },
+    "Tiny_Labels2": {
+        "text_color": "#4EF737",
         "corner_radius": 8,
         "font": ("Segoe UI", 12, "bold")
     },
