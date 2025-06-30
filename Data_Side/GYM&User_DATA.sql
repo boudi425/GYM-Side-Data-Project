@@ -55,3 +55,18 @@ IF NOT EXISTS userPlan
 (ID)
 );
 
+CREATE TABLE
+IF NOT EXISTS Meals
+(
+    ID INTEGER PRIMARY KEY AUTOINCREMENT,
+    User_id INTEGER,
+    Date DATETIME,
+    Section TEXT,
+    Meal TEXT,
+    Proteins INTEGER,
+    Carbs INTEGER,
+    Fats INTEGER,
+    Kcal INTEGER,
+(User_id) REFERENCES Users
+(ID)
+)

@@ -12,7 +12,4 @@ Main_Calories = [2300, 2500, 3000]
 Diet_Goal = "Maintain My Weight"
 Cal_Frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-p = [{"Name": "Var"}, {"Name": "Var"}]
-for item in p:
-    print(item)
 Cal_Frame.mainloop()

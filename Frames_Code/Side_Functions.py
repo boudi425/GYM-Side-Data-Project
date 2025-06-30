@@ -117,3 +117,4 @@ def search_foods(query, limit=5):
 
 def only_digits(char):
     return char.isdigit()
+

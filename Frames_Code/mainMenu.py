@@ -7,6 +7,7 @@ from PIL import Image
 import sqlite3
 import pandas as pd
 import matplotlib as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import json
 import datetime
 from path_setup import get_data_path
@@ -458,7 +459,7 @@ class sideBar:
                                             )
 class Calories_Section:
     def __init__(self, mainCalories, actualCalories, dietGoal):
-        self.Data_load = us.load_session()()
+        self.Data_load = us.load_session()
         self.mainCalories = mainCalories
         self.actualCalories = actualCalories
         self.dietGoal = dietGoal
@@ -481,12 +482,22 @@ class Calories_Section:
             self.load_mainCalFrame()
 
             # ===============Testing
+        check_results = us.load_user_plan(self.Data_load["ID"])
+        if check_results:
+            chosen_planDataLoad(check_results["Plan"], check_results["targetGoal"])
+        else:
+            return None
+        
+        notPlan = Diet_Goal = Cur.execute(
+            "SELECT Diet_Goal FROM Program_Users WHERE User_id = ?",
+            (self.Data_load["ID"],)
+        ).fetchone()[0]
         ctk.CTkButton(
             self.Cal_Frame,
             text="Make my Own Plan",
             **Styles.button_styles["Quick"],
-            command=lambda: chosen_planDataLoad(None, typeGoal="Nothing")
-        )
+            command=lambda: chosen_planDataLoad(Plan="Plan1", typeGoal=notPlan)
+        ).grid(row=0, column=0, sticky="nw")
 
         Calories = Cur.execute(
             "SELECT Calories FROM Program_Data WHERE User_id = ?",
@@ -696,15 +707,37 @@ class Calories_Section:
                 ctk.CTkLabel(Top_Meal_Details, text=f"Total Kcal: {Details["Kcal"]}", **Styles.label_styles["Menu_Labels"]
                             ).place(x=300, y=500)
                 ctk.CTkButton(Top_Meal_Details, text="Close", **Styles.button_styles["Quick"], command=Top_Meal_Details.destroy)
+                
+                Diagram_Data = pd.read_sql_query(
+                "SELECT Proteins, Carbs, Fats FROM Meal WHERE Section = ? AND User_id = ?",
+                con=Conn,
+                params=(section, self.Data_load["ID"])
+                )
+                Totals = Diagram_Data.sum()
+                Labels = ["Protein", "Carbs", "Fats"]
+                values = [Totals["Protein"], Totals["Carbs"], Totals["Fats"]]
+                
+                fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+                ax.figure(figsize=(5, 5))
+                ax.pie(values, labels=Labels, autopct="%1.1f%%", startangle=90)
+                ax.set_title(f"Macro Split for section {section}")
+                ax.axis("equal")
+                
+                chart = FigureCanvasTkAgg(fig, master=Top_Meal_Details)
+                chart.draw()
+                chart.get_tk_widget().grid(row=0, column=1, pady=10)
+            else:
+                self.Error_Popup_Window("No Data Found, Try To add Some", "Close")
+
         elif Type == "New Meal":
             self.openNewMeals(section)
             
     def openNewMeals(self, section):
         Search_Query = ctk.StringVar(value="Chicken")
-        Total_Kcal = ctk.IntVar(value=0)
-        Total_Protein = ctk.IntVar(value=0)
-        Total_Carbs = ctk.IntVar(value=0)
-        Total_Fats = ctk.IntVar(value=0)
+        self.Total_Kcal = ctk.IntVar(value=0)
+        self.Total_Protein = ctk.IntVar(value=0)
+        self.Total_Carbs = ctk.IntVar(value=0)
+        self.Total_Fats = ctk.IntVar(value=0)
         all_Meals = ctk.StringVar(value="No Meals Added")
         for widget in self.Cal_Frame:
             if not isinstance(widget, ctk.CTkCanvas):
@@ -716,24 +749,29 @@ class Calories_Section:
                                         height=128,
                                         border_color="white",
                                         border_width=2).grid(row=0, column=1, pady=10)
-        ctk.CTkLabel(self.Now_Made_Frame, text="Your Meal: ",**Styles.label_styles["Menu_Labels"]).grid(row=0, column=0, pady=3)
-        ctk.CTkLabel(self.Now_Made_Frame, text=f"Total Kcal: {Total_Kcal.get()}", **Styles.label_styles["Menu_Labels"]
+        
+        ctk.CTkLabel(self.Now_Made_Frame, text=f"Your Meal: {section}",**Styles.label_styles["Menu_Labels"]).grid(row=0, column=0, pady=3)
+        
+        ctk.CTkLabel(self.Now_Made_Frame, text=f"Total Kcal: {self.Total_Kcal.get()}", **Styles.label_styles["Menu_Labels"]
                     ).grid(row=0, column=1, pady=3)
-        ctk.CTkLabel(self.Now_Made_Frame, text=all_Meals, **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
+        all_Meals.set(Cur.execute("SELECT Meal FROM Meals WHERE User_id =  ? AND Section = ?", (self.Data_load["ID"], section)).fetchall())
+        ctk.CTkLabel(self.Now_Made_Frame, text=all_Meals.get(), **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
         
         ctk.CTkButton(self.Cal_Frame, text="Add", width=110, height=40, **Styles.button_styles["Quick"],
                     command=addMeal).grid(row=1, column=1, pady=10)
             
-        edit_btn = ctk.CTkButton(self.Cal_Frame, text="Edit", width=110, height=40, **Styles.button_styles["Quick"], state="readonly",
+        edit_btn = ctk.CTkButton(self.Cal_Frame, text="Edit", width=110, height=40, **Styles.button_styles["Quick"], state="disabled",
                     command=editMeal)
-        edit_btn.grid(row=2, column=1, pady=10)
+        edit_btn.grid(row=1, column=2, pady=10)
         
-        rem_btn = ctk.CTkButton(self.Cal_Frame, text="Remove", width=110, height=40, **Styles.button_styles["Quick"], state="readonly",
-                    command=removeMeal)
-        rem_btn.grid(row=3, column=1, pady=10)
-        if all_Meals.get() != "No Meals Added":
+        rem_btn = ctk.CTkButton(self.Cal_Frame, text="Remove", width=110, height=40, **Styles.button_styles["Quick"], state="disabled",
+                    command=removeMealTopLoad)
+        rem_btn.grid(row=1, column=3, pady=10)
+        
+        if all_Meals.get() != "No Meals Added" or all_Meals.get() != None:
             edit_btn.configure(state="normal")
             rem_btn.configure(state="normal")
+            
         def addMeal():
             def get_search(Results):
                 Results = Side_Functions.search_foods(Search_Query.get())
@@ -743,21 +781,64 @@ class Calories_Section:
                         width=250, height=39,
                         **Styles.entry_styles["Query"]
                         ).grid(row=0, column=0, pady=5)
+            
             ctk.CTkButton(self.Cal_Frame, width=30, height=30, image="", compound="", **Styles.label_styles["Quick"],
                         command=lambda: get_search(Search_Results))
+            
             Query_Frame_Shown = ctk.CTkFrame(self.Cal_Frame, width=300, height=385).grid(row=1, column=0, pady=10)
+            
             for Item in Search_Results:
                 for i, (key, value) in enumerate(Item.items()):
                     ctk.CTkLabel(Query_Frame_Shown, text=key, wraplength=100, **Styles.label_styles["Menu_Labels"]
                                 ).grid(row=i, column=0, pady=5)
+                    
                     ctk.CTkLabel(Query_Frame_Shown, text=f"ID: {value}", **Styles.label_styles["Menu_Labels_Tiny"]
-                                ).grid(row=0, column=1, sticky="ne")
+                                ).grid(row=i, column=1, sticky="ne")
+                    
                     ctk.CTkButton(Query_Frame_Shown, text="Choose", **Styles.button_styles["Quick"],
-                                command=lambda: self.showTopDetails(key, section)).grid(row=1, column=1, pady=5)
-        def removeMeal():
-            pass
+                                command=lambda: self.showTopDetails(key, section)).grid(row=i+1, column=1, pady=5)
+                    
+        def removeMealTopLoad():
+            def deleteTheMealData(meal_section):
+                Cur.execute("DELETE FROM Meals WHERE User_id = ? AND Section = ?", (self.Data_load["ID"], meal_section))
+                Conn.commit()
+            warnTop = ctk.CTkToplevel()
+            warnTop.title("Removing meal")
+            warnTop.geometry("500x5000")
+            ctk.CTkLabel(warnTop, text="Are you sure you want to delete the whole meal?",
+                        **Styles.label_styles["Menu_labels"]).pack(pady=10)
+            
+            ctk.CTkButton(warnTop, text="Yes, I am sure", **Styles.button_styles["Second"],
+                        command=lambda: [deleteTheMealData(section), warnTop.destroy()]).pack(pady=10)
+            
+            ctk.CTkButton(warnTop, text="No, Thanks", **Styles.button_styles["Second"], command= warnTop.destroy).pack(pady=10)
         def editMeal():
-            pass
+            editTop = ctk.CTkToplevel()
+            editTop.geometry("600x600")
+            editTop.title(f"{section} Edit")
+            ctk.CTkLabel(editTop, text=all_Meals.get(), **Styles.label_styles["Menu_Labels"]).pack(pady=5)
+            
+            Diagram_Data = pd.read_sql_query(
+            "SELECT Proteins, Carbs, Fats FROM Meal WHERE Section = ? AND User_id = ?",
+            con=Conn,
+            params=(section, self.Data_load["ID"])
+            )
+            Totals = Diagram_Data.sum()
+            Labels = ["Protein", "Carbs", "Fats"]
+            values = [Totals["Protein"], Totals["Carbs"], Totals["Fats"]]
+            
+            fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
+            ax.figure(figsize=(5, 5))
+            ax.pie(values, labels=Labels, autopct="%1.1f%%", startangle=90)
+            ax.set_title(f"Macro Split for section {section}")
+            ax.axis("equal")
+            
+            chart = FigureCanvasTkAgg(fig, master=editTop)
+            chart.get_tk_widget().pack(pady=5,  padx=(0 , 10))
+            ctk.CTkLabel(editTop, text="Still Working on editing the meal itself, For now you can try to add and remove",
+                        **Styles.label_styles["Menu_Labels"]).pack()
+            ctk.CTkButton(editTop, text="Add", **Styles.button_styles["Quick"],
+                        command=lambda: [addMeal(), editTop.destroy()]).pack(pady=10)
     def showTopDetails(self, foodName, section):
         Kcal = ctk.StringVar(value="")
         Proteins = ctk.StringVar(value="")
@@ -771,8 +852,10 @@ class Calories_Section:
         vcmd = chosen_foodTop.register(Side_Functions.onlyDigits)
         
         ctk.CTkLabel(chosen_foodTop, text=foodName, **Styles.label_styles["Menu_Labels"]).grid(row=0, column=1, pady=5)
+        
         grams = ctk.IntVar(value=100)
         entry = ctk.CTkEntry(chosen_foodTop, textvariable=grams, **Styles.entry_styles["Query"])
+        
         entry._entry.configure(validate="key", validatecommand=(vcmd, "%S"))
         entry.grid(row=5, column=1, pady=3)
         
@@ -801,3 +884,18 @@ class Calories_Section:
             else:
                 Final = us.UserMealData(datetime.date.today(), section, foodName, grams, Kcal.get())
                 us.saveDataMeal(self.Data_load["ID"], section, *Final)
+                self.Total_Kcal.set(Kcal.get())
+                self.Total_Protein.set(Proteins.get())
+                self.Total_Carbs.set(Carbs.get())
+                self.Total_Fats.set(Fats.get())
+                Cur.execute("INSERT INTO Meals(User_id, Date, Section, Proteins, Carbs, Fats, Kcal) VALUES(?, ?, ?, ?, ?, ?, ?)",(
+                    self.Data_load["ID"],
+                    datetime.date.today(),
+                    section,
+                    foodName,
+                    self.Total_Protein,
+                    self.Total_Carbs,
+                    self.Total_Fats,
+                    self.Total_Kcal
+                ))
+                Conn.commit()
