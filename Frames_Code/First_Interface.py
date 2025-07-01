@@ -1,6 +1,8 @@
 import os
 import sys
-from path_setup import get_data_path
+from path_setup import get_data_path, add_frames_path
+add_frames_path("Data_Side")
+from db_connection import DBconnection # type: ignore
 import customtkinter as ctk
 import Styles
 import sqlite3
@@ -12,7 +14,7 @@ from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
-Con, Cur = Side_Functions.openData(get_data_path("Users_Data.db"), "Data_Side/GYM&User_DATA.sql")
+DB = DBconnection("Users_Data.db")
 Con_Feed_Repo, Cur_Feed_Repo = Side_Functions.openData(get_data_path("Reports&Feedbacks.db"), "Data_Side/Reports&Feedbacks.sql")
 #First: Sign up Interface/Class
     
@@ -38,39 +40,39 @@ class Sign_Up(ctk.CTkFrame):
         root = ctk.CTkToplevel()
         root.geometry("250x150")
         root.title("Error")
-        ctk.CTkLabel(root, text=Label_Text, **Styles.label_styles["subtitle2"])
-        ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy)
+        ctk.CTkLabel(root, text=Label_Text, **Styles.label_styles["subtitle2"]).pack()
+        ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy).pack()
 
     def Submit(self):
-        Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
-        Names = [name[0] for name in Cur.execute("SELECT Name FROM Users").fetchall()]
+        Emails = [email[0] for email in DB.fetchall("SELECT Email FROM Users")]
+        Names = [name[0] for name in DB.fetchall("SELECT Name FROM Users")]
         valid = True
 
         # Username
-        if not Side_Functions.check_empty(self.username, self.username_warning, "⚠ Username required"):
+        if not Side_Functions.check_empty(self.userNameEntry, self.username_warning, "⚠ Username required"):
             valid = False
-        elif self.username.get().capitalize() in Names:
+        elif self.userNameEntry.get().capitalize() in Names:
             self.username_warning.configure(text="⚠ Username is already Taken")
             valid = False
-        elif len(self.username.get()) > 32:
+        elif len(self.userNameEntry.get()) > 32:
             self.username_warning.configure(text="⚠ Username is Too Long!")
             valid = False
-        elif len(self.username.get()) < 8:
+        elif len(self.userNameEntry.get()) < 8:
             self.username_warning.configure(text="⚠ Username is Too Short!")
             valid = False
 
         # Password
-        if not Side_Functions.check_empty(self.password, self.password_warning, "⚠ Password required"):
+        if not Side_Functions.check_empty(self.password_Entry, self.password_warning, "⚠ Password required"):
             valid = False
-        elif len(self.password.get()) < 8:
+        elif len(self.password_Entry.get()) < 8:
             self.password_warning.configure(text="⚠ Password is Too Short!")
             valid = False
         # Weight
-        if not Side_Functions.check_empty(self.body_Weight, self.weight_warning, "⚠ Weight required"):
+        if not Side_Functions.check_empty(self.body_WeightEntry, self.weight_warning, "⚠ Weight required"):
             valid = False
         else:
             try:
-                if int(self.body_Weight.get()) < 0:
+                if int(self.body_WeightEntry.get()) < 0:
                     self.weight_warning.configure(text="⚠ Negative Numbers \naren't allowed")
                     valid = False
             except ValueError:
@@ -78,7 +80,7 @@ class Sign_Up(ctk.CTkFrame):
                 valid = False
 
         # Height
-        if not Side_Functions.check_empty(self.body_Height, self.height_warning, "⚠ Height required"):
+        if not Side_Functions.check_empty(self.body_Height_Entry, self.height_warning, "⚠ Height required"):
             valid = False
         else:
             try:
@@ -90,21 +92,21 @@ class Sign_Up(ctk.CTkFrame):
                 valid = False
 
         # Email
-        if not Side_Functions.check_empty(self.email, self.email_warning, "⚠ Email required"):
+        if not Side_Functions.check_empty(self.emailEntry, self.email_warning, "⚠ Email required"):
             valid = False
-        elif Side_Functions.suggest_email_domain(self.email.get()) is not None:
-            self.email_warning.configure(text=Side_Functions.suggest_email_domain(self.email.get()))
+        elif Side_Functions.suggest_email_domain(self.emailEntry.get()) is not None:
+            self.email_warning.configure(text=Side_Functions.suggest_email_domain(self.emailEntry.get()))
             valid = False
-        elif self.email.get() in Emails:
+        elif self.emailEntry.get() in Emails:
             self.email_warning.configure(text="⚠ Email is already Taken")
             valid = False
 
         # Age
-        if not Side_Functions.check_empty(self.age, self.age_warning, "⚠ Age required"):
+        if not Side_Functions.check_empty(self.Age_Entry, self.age_warning, "⚠ Age required"):
             valid = False
         else:
             try:
-                if int(self.age.get()) < 0:
+                if int(self.Age_Entry.get()) < 0:
                     self.age_warning.configure(text="⚠ Negative Numbers \naren't allowed")
                     valid = False
             except ValueError:
@@ -116,7 +118,7 @@ class Sign_Up(ctk.CTkFrame):
 
     def SignUp_Data_Management(self):
         try:
-            Cur.execute("""INSERT INTO Users(
+            DB.execute("""INSERT INTO Users(
                             Name, 
                             Password, 
                             Email, 
@@ -134,7 +136,6 @@ class Sign_Up(ctk.CTkFrame):
                             self.Activity.get(),
                             int(self.age.get())
                         ))
-            Con.commit()
             if self.switch_screen:
                 self.switch_screen()
         except Exception as e:
@@ -152,12 +153,12 @@ class Sign_Up(ctk.CTkFrame):
                                     height=58,
                                     **Styles.label_styles["title2"])
         User_Name_Label.place(x=405, y=72)
-        userName = ctk.CTkEntry(self,
+        self.userNameEntry = ctk.CTkEntry(self,
                                     textvariable=self.username,
                                     width=346,
                                     height=50,
                                     **Styles.entry_styles["default"])
-        userName.place(x=405, y=134)
+        self.userNameEntry.place(x=405, y=134)
         
         self.username_warning = ctk.CTkLabel(self, text="", width=140, height=24, **Styles.label_styles["error_title"])
         self.username_warning.place(x=405, y=198)
@@ -168,12 +169,12 @@ class Sign_Up(ctk.CTkFrame):
                                     height=58,
                                     **Styles.label_styles["title2"])
         Email_Label.place(x=11, y=72)
-        email = ctk.CTkEntry(self,
+        self.emailEntry = ctk.CTkEntry(self,
                                 textvariable= self.email,
                                 width=346,
                                 height=50,
                                 **Styles.entry_styles["default"])
-        email.place(x=11, y=135)
+        self.emailEntry.place(x=11, y=135)
         
         self.email_warning = ctk.CTkLabel(self, text="", width=140, height=24, **Styles.label_styles["error_title"])
         self.email_warning.place(x=20, y=198)
@@ -184,13 +185,13 @@ class Sign_Up(ctk.CTkFrame):
                                     height=58,
                                     **Styles.label_styles["title2"])
         password_Label.place(x=11, y=217)
-        password_Entry = ctk.CTkEntry(self,
+        self.password_Entry = ctk.CTkEntry(self,
                                     textvariable=self.password,
                                     show="*",
                                     width=334,
                                     height=41,
                                     **Styles.entry_styles["default"])
-        password_Entry.place(x=11, y=275)
+        self.password_Entry.place(x=11, y=275)
         
         password_show_btn = ctk.CTkButton(self,
                                         text="👁",
@@ -202,7 +203,7 @@ class Sign_Up(ctk.CTkFrame):
                                         border_color="#CCCCCC",
                                         corner_radius=5,
                                         hover_color= "#FFE23D",
-                                        command=lambda: password_Entry.configure(show="")
+                                        command=lambda: self.password_Entry.configure(show="")
                                         )
         password_show_btn.place(x=345, y=271)
         self.password_warning = ctk.CTkLabel(self, text="", width=140, height=24, **Styles.label_styles["error_title"])
@@ -223,12 +224,12 @@ class Sign_Up(ctk.CTkFrame):
                                     height=58,
                                     **Styles.label_styles["subtitle2"])
         Body_Weight_Label.place(x=68, y=346)
-        body_Weight = ctk.CTkEntry(self,
+        self.body_WeightEntry = ctk.CTkEntry(self,
                                     textvariable=self.body_Weight,
                                     width=98,
                                     height=50,
                                     **Styles.entry_styles["default"])
-        body_Weight.place(x=92, y=404)
+        self.body_WeightEntry.place(x=92, y=404)
         self.weight_warning = ctk.CTkLabel(self, text="",width=156, height=24, **Styles.label_styles["error_title"])
         self.weight_warning.place(x=52, y=465)
         
@@ -255,12 +256,12 @@ class Sign_Up(ctk.CTkFrame):
                                     **Styles.label_styles["subtitle2"])
         Body_Height_Label.place(x=310, y=346)
         
-        body_Height = ctk.CTkEntry(self,
+        self.body_Height_Entry = ctk.CTkEntry(self,
                                     textvariable=self.body_Height,
                                     width=98,
                                     height=50,
                                     **Styles.entry_styles["default"])
-        body_Height.place(x=334, y=404)
+        self.body_Height_Entry.place(x=334, y=404)
         
         self.height_warning = ctk.CTkLabel(self, text="", width=153, height=24, **Styles.label_styles["error_title"])
         self.height_warning.place(x=305, y=465)
@@ -288,12 +289,12 @@ class Sign_Up(ctk.CTkFrame):
                                     **Styles.label_styles["subtitle2"])
         Age_Label.place(x=556, y=343)
         
-        Age_Entry = ctk.CTkEntry(self,
+        self.Age_Entry = ctk.CTkEntry(self,
                                     textvariable=self.age,
                                     width=98,
                                     height=50,
                                     **Styles.entry_styles["default"])
-        Age_Entry.place(x=581, y=404)
+        self.Age_Entry.place(x=581, y=404)
         self.age_warning = ctk.CTkLabel(self, text="", width=128, height=24, **Styles.label_styles["error_title"])
         self.age_warning.place(x=556, y=465)
 
@@ -374,7 +375,7 @@ class Login(ctk.CTkFrame):
                 
     def Submit(self):
         #Same as the sign up class
-        Emails = [email[0] for email in Cur.execute("SELECT Email FROM Users").fetchall()]
+        Emails = [email[0] for email in DB.fetchall("SELECT Email FROM Users")]
 
         valid = True
         self.Email_warning.configure(text="")
@@ -389,7 +390,7 @@ class Login(ctk.CTkFrame):
             valid = False
         else:
             # Password Validation
-            password_data = Cur.execute("SELECT Password FROM Users WHERE Email = ?", (self.Email.get(),)).fetchone()
+            password_data = DB.fetchone("SELECT Password FROM Users WHERE Email = ?", (self.Email.get(),))
             if not Side_Functions.check_empty(self.Password, self.Password_warning, "⚠ Password required"):
                 valid = False
             elif password_data[0] != self.Password.get():
@@ -406,20 +407,16 @@ class Login(ctk.CTkFrame):
             #So we simply check first if the token column is here if not , do one, if yes insert a token (The token is randomly generated!)
             # Stay Logged Token
             if self.Stay_logged.get():
-                Cur.execute("PRAGMA table_info(Users);")
-                columns = [column[1] for column in Cur.fetchall()]
+                columns = [column[1] for column in DB.fetchall("PRAGMA table_info(Users);")]
 
                 if "token" not in columns:
-                    Cur.execute("ALTER TABLE Users ADD COLUMN token TEXT;")
-                    Con.commit()
+                    DB.execute("ALTER TABLE Users ADD COLUMN token TEXT;")
                 
                 token = Side_Functions.generate_token()
                 with open("User_Out_Data/auth_token.txt", "w") as f:
                     f.write(token)
-                Cur.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
-                Con.commit()
-            user_Data = Cur.execute("SELECT ID, Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
-            result = user_Data.fetchone()
+                DB.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
+            result = DB.fetchone("SELECT ID, Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
             
             session = user_session(*result) 
             save_session(session) # => Saving the data in a json file, so we can access it at anytime!
@@ -433,7 +430,7 @@ class Login(ctk.CTkFrame):
             # if accessed this window for check if sure window then destroy it and if this true then we logged from the token, this we can take the token
             #and get the data from it and store it in the session.json file so we can access the data easily!
             self.Check_if_logged_window.destroy()
-            result = Cur.execute("SELECT ID, Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,)).fetchone()
+            result = DB.fetchone("SELECT ID, Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,))
             save_session(*result)
         except AttributeError:
             return None
@@ -460,7 +457,7 @@ class Login(ctk.CTkFrame):
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
             try:
                 Data_Load = load_session()
-                Access = Cur.execute("SELECT Full_Logged FROM Users WHERE ID = ?", (Data_Load["ID"],)).fetchone()
+                Access = DB.fetchone("SELECT Full_Logged FROM Users WHERE ID = ?", (Data_Load["ID"],))
                 if Access:
                     self.Logged_switch_screen()
             except (TypeError, AttributeError) as e:

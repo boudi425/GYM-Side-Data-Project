@@ -67,6 +67,7 @@ IF NOT EXISTS Meals
     Carbs INTEGER,
     Fats INTEGER,
     Kcal INTEGER,
+FOREIGN KEY
 (User_id) REFERENCES Users
 (ID)
-)
+);

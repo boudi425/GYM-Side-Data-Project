@@ -18,8 +18,14 @@ mainMenu_Window.geometry("1000x600")
 mainMenu_Window.title("Dashboard")
 in_frame = ctk.CTkFrame(mainMenu_Window, width=768, height=520, border_color="white", border_width=2)
 in_frame.place(x=220, y=70)
-class tabView:
+class Dashboard:
     def __init__(self):
+        tabView.create_TabView()
+        sideBar.Create_sidebar_Frame()
+        mainMenu_Window.mainloop()
+class tabView(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__()
         self.Data_load = us.load_session()
         self.allTab_buttons = {}
     
@@ -377,13 +383,14 @@ class tabView:
             Sure_Windows.attributes("-topmost", True)
     def cleanup_exit(self):
         mainMenu_Window.destroy()
-class sideBar:
-    def __init__(self):
+class sideBar(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
         self.Data_load = us.load_session()()
         self.allSidebar_buttons = {}
         
     def switch_frame(self, frame): 
-        for widget in self.in_frame.winfo_children():
+        for widget in in_frame.winfo_children():
             if isinstance(widget, ctk.CTkFrame):
                 widget.place_forget()
         frame.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -398,7 +405,7 @@ class sideBar:
                     "Icon_path_Active": ctk.CTkImage(dark_image=Image.open("Window_Images/Active_PP.png"), size=(28, 28)),
                     "Icon_path": ctk.CTkImage(dark_image=Image.open("Window_Images/Default_PP.png"), size=(28, 28)),
                     "style": "Third",
-                    "command": lambda: Create_myPlan_Frame(),
+                    "command": lambda: myPlan(),
                     "Default_color": "#32C766",
                     "Active_color": "#28A957"  
                 },
@@ -414,7 +421,7 @@ class sideBar:
                     "Icon_path_Active": ctk.CTkImage(dark_image=Image.open("Window_Images/Active_Exe.png"), size=(28, 28)),
                     "Icon_path": ctk.CTkImage(dark_image=Image.open("Window_Images/Default_Exe.png"), size=(28, 28)),
                     "style": "Second",
-                    "command": lambda: Create_Exercises_Frame(),
+                    "command": lambda: Exercises_Section(),
                     "Default_color": "#4A8AE8",
                     "Active_color": "#2F69B8" 
                 },
@@ -422,7 +429,7 @@ class sideBar:
                     "Icon_path_Active": ctk.CTkImage(dark_image=Image.open("Window_Images/Active_Jour.png"), size=(28, 28)),
                     "Icon_path": ctk.CTkImage(dark_image=Image.open("Window_Images/Default_Jour.png"), size=(28, 28)),
                     "style": "Fourth",
-                    "command": lambda: Create_Journey_Frame(),
+                    "command": lambda: Journey(),
                     "Default_color": "#9FA8DA",
                     "Active_color": "#8894C7" 
                 },
@@ -464,7 +471,7 @@ class Calories_Section:
         self.actualCalories = actualCalories
         self.dietGoal = dietGoal
         self.Cal_Frame = ctk.CTkFrame(in_frame, border_color="white", border_width=2)
-        
+        self.showPlanStarter()
     def Error_Popup_Window(self, Label_Text, Button_Text):
         root = ctk.CTkToplevel()
         root.geometry("500x150")
@@ -899,3 +906,12 @@ class Calories_Section:
                     self.Total_Kcal
                 ))
                 Conn.commit()
+class Exercises_Section:
+    def __init__(self):
+        pass
+class Journey:
+    def __init__(self):
+        pass
+class myPlan:
+    def __init__(self):
+        pass

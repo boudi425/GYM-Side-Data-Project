@@ -11,12 +11,13 @@ import sqlite3
 import Side_Functions  # type: ignore
 from First_Interface import Sign_Up, Login, Report_Section  # type: ignore
 from Calorie_Fitness import Program_setUp  # type: ignore
-from Menu import mainMenu  # type: ignore
+from mainMenu import Dashboard  # type: ignore
+from db_connection import DBconnection  # type: ignore
 from PIL import Image
 
+DB = DBconnection("Users_Data.db")
+
 # Open database connections
-Con, Cur = Side_Functions.openData(get_data_path("Users_Data.db"), "Data_Side/GYM&User_DATA.sql")
-Con_Feed_Repo, Cur_Feed_Repo = Side_Functions.openData(get_data_path("Reports&Feedbacks.db"), "Data_Side/Reports&Feedbacks.sql")
 
 # Set global appearance
 ctk.set_appearance_mode("dark")
@@ -30,17 +31,16 @@ class Main_Window(ctk.CTk):
         self.configure(fg_color="#2B2B2B")
         
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
+        self.Show_Page(self.First_Interface_Frame)
         self.Create_First_InterFace()
-
         # Start with main menu
-        self.Show_Main()
-        self.protocol("WM_DELETE_WINDOW", self.cleanup_exit)
+        #self.protocol("WM_DELETE_WINDOW", self.cleanup_exit)
 
     def Create_First_InterFace(self):
         # Background image
-        bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/First_BG.jpeg"), size=(800, 600))
-        bg_label = ctk.CTkLabel(self.First_Interface_Frame, image=bkg_Image, text="", fg_color="transparent")
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
+        #bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/First_BG.jpeg"), size=(800, 600))
+        #bg_label = ctk.CTkLabel(self.First_Interface_Frame, image=bkg_Image, text="", fg_color="transparent")
+        #bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
 
         # Title
         Title_Label = ctk.CTkLabel(self.First_Interface_Frame, 
@@ -92,11 +92,9 @@ class Main_Window(ctk.CTk):
         self.Show_Page(self.Showing_Program)
 
     def Show_Main(self):
-        if not hasattr(self, "Showing_Main"):
-            self.Showing_Main = mainMenu(self)
-        self.geometry("1000x600")
-        self.Show_Page(self.Showing_Main)
-
+        self.destroy()
+        Dashboard()
+        
     def Show_Sign(self):
         if not hasattr(self, "Showing_Sign"):
             self.Showing_Sign = Sign_Up(self, self.Show_Login)
@@ -113,8 +111,8 @@ class Main_Window(ctk.CTk):
         self.Show_Page(self.Showing_Login)
 
     def cleanup_exit(self):
-        Con.close()
-        Con_Feed_Repo.close()
+        DB.close()
+        #Con_Feed_Repo.close()
         self.destroy()
 
     def Check_if_sure(self):

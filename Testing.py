@@ -5,6 +5,7 @@ import Styles # type: ignore
 import Side_Functions # type: ignore
 from PIL import Image
 import  datetime
+from path_setup import get_data_path, add_frames_path
 Cal_Frame = ctk.CTk()
 Cal_Frame.geometry("768x520")
 Actual_Burn_cal = 2000
