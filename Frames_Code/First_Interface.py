@@ -2,7 +2,7 @@ import os
 import sys
 from path_setup import get_data_path, add_frames_path
 add_frames_path("Data_Side")
-from db_connection import DBconnection # type: ignore
+from db_connection import DBConnection # type: ignore
 import customtkinter as ctk
 import Styles
 import sqlite3
@@ -14,7 +14,11 @@ from PIL import Image
 #This will be the Main Interface (start up interface you can say also)
 #I will Start with the basics
 #Zero basic Set up
-DB = DBconnection("Users_Data.db")
+DB = DBConnection("Data_Side/Users_Data.db")
+DB.execute("PRAGMA foreign_keys = ON;")
+with open(get_data_path("GYM_Queries.sql"), "r") as file:
+    sql_script = file.read()
+    DB.executescript(sql_script)
 Con_Feed_Repo, Cur_Feed_Repo = Side_Functions.openData(get_data_path("Reports&Feedbacks.db"), "Data_Side/Reports&Feedbacks.sql")
 #First: Sign up Interface/Class
 
@@ -128,13 +132,13 @@ class Sign_Up(ctk.CTkFrame):
                             Age) 
                         VALUES (?, ?, ?, ?, ?, ?, ?)""",
                         (
-                            self.username.get(),
-                            self.password.get(),
-                            self.email.get(),
-                            int(self.body_Weight.get()),
-                            int(self.body_Height.get()),
+                            self.userNameEntry.get(),
+                            self.password_Entry.get(),
+                            self.emailEntry.get(),
+                            int(self.body_WeightEntry.get()),
+                            int(self.body_Height_Entry.get()),
                             self.Activity.get(),
-                            int(self.age.get())
+                            int(self.Age_Entry.get())
                         ))
             if self.switch_screen:
                 self.switch_screen()
@@ -383,17 +387,17 @@ class Login(ctk.CTkFrame):
         self.Submit_Btn_warning.configure(text="")
 
         # Email Validation
-        if not Side_Functions.check_empty(self.Email, self.Email_warning, "⚠ Email required"):
+        if not Side_Functions.check_empty(self.Email_entry, self.Email_warning, "⚠ Email required"):
             valid = False
-        elif self.Email.get() not in Emails:
+        elif self.Email_entry.get() not in Emails:
             self.Email_warning.configure(text="⚠ Email not found")
             valid = False
         else:
             # Password Validation
-            password_data = DB.fetchone("SELECT Password FROM Users WHERE Email = ?", (self.Email.get(),))
-            if not Side_Functions.check_empty(self.Password, self.Password_warning, "⚠ Password required"):
+            password_data = DB.fetchone("SELECT Password FROM Users WHERE Email = ?", (self.Email_entry.get(),))
+            if not Side_Functions.check_empty(self.Password_entry, self.Password_warning, "⚠ Password required"):
                 valid = False
-            elif password_data[0] != self.Password.get():
+            elif password_data[0] != self.Password_entry.get():
                 self.Password_warning.configure(text="⚠ Incorrect Password")
                 valid = False
 
@@ -417,9 +421,8 @@ class Login(ctk.CTkFrame):
                     f.write(token)
                 DB.execute("UPDATE Users SET token = ? WHERE Email = ?", (token, self.Email.get()))
             result = DB.fetchone("SELECT ID, Name, Activity, Body_Weight, Body_Height, Age FROM Users WHERE Email = ?", (self.Email.get(),))
-            
-            session = user_session(*result) 
-            save_session(session) # => Saving the data in a json file, so we can access it at anytime!
+            session = user_session(result) 
+            save_session(*session) # => Saving the data in a json file, so we can access it at anytime!
             
             self.destroy()
             self.Access()
@@ -431,7 +434,8 @@ class Login(ctk.CTkFrame):
             #and get the data from it and store it in the session.json file so we can access the data easily!
             self.Check_if_logged_window.destroy()
             result = DB.fetchone("SELECT ID, Name, Age, Body_Weight, Body_Height, Activity FROM Users WHERE token = ?", (self.token,))
-            save_session(*result)
+            result = user_session(*result)
+            save_session(result)
         except AttributeError:
             return None
         self.Access_Gained = ctk.CTkToplevel()
@@ -457,9 +461,15 @@ class Login(ctk.CTkFrame):
             self.Access_Gained.after(2000, self.Access_Gained.destroy)
             try:
                 Data_Load = load_session()
-                Access = DB.fetchone("SELECT Full_Logged FROM Users WHERE ID = ?", (Data_Load["ID"],))
+                try:
+                    Access = DB.fetchone("SELECT Full_Logged FROM Users WHERE ID = ?", (Data_Load["ID"],))
+                except sqlite3.OperationalError:
+                    Access = None
+                    if self.switch_screen:
+                        self.switch_screen()
                 if Access:
                     self.Logged_switch_screen()
+                    
             except (TypeError, AttributeError) as e:
                 print(f"[Handled Error] {e}")
                 if self.switch_screen:
@@ -475,8 +485,8 @@ class Login(ctk.CTkFrame):
         Email_Label = ctk.CTkLabel(self, text="Email:", width=134, height=58, **Styles.label_styles["subtitle2"])
         Email_Label.place(x=185, y=80)
 
-        Email_entry = ctk.CTkEntry(self, textvariable=self.Email, width=346, height=50, **Styles.entry_styles["default"])
-        Email_entry.place(x=209, y=129)
+        self.Email_entry = ctk.CTkEntry(self, textvariable=self.Email, width=346, height=50, **Styles.entry_styles["default"])
+        self.Email_entry.place(x=209, y=129)
 
         self.Email_warning = ctk.CTkLabel(self, width=300, height=24, text="", **Styles.label_styles["error_title"])
         self.Email_warning.place(x=209, y=185)
@@ -484,8 +494,8 @@ class Login(ctk.CTkFrame):
         Password_Label = ctk.CTkLabel(self, text="Password:", **Styles.label_styles["subtitle2"])
         Password_Label.place(x=205, y=211)
 
-        Password_entry = ctk.CTkEntry(self, textvariable=self.Password, show="*", width=334, height=41, **Styles.entry_styles["default"])
-        Password_entry.place(x=209, y=250)
+        self.Password_entry = ctk.CTkEntry(self, textvariable=self.Password, show="*", width=334, height=41, **Styles.entry_styles["default"])
+        self.Password_entry.place(x=209, y=250)
 
         password_show_btn = ctk.CTkButton(
             self,
@@ -498,7 +508,7 @@ class Login(ctk.CTkFrame):
             border_color="#CCCCCC",
             corner_radius=5,
             hover_color="#FFE23D",
-            command=lambda: Password_entry.configure(show="")
+            command=lambda: self.Password_entry.configure(show="")
         )
         password_show_btn.place(x=543, y=245)
 

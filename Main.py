@@ -12,10 +12,15 @@ import Side_Functions  # type: ignore
 from First_Interface import Sign_Up, Login, Report_Section  # type: ignore
 from Calorie_Fitness import Program_setUp  # type: ignore
 from mainMenu import Dashboard  # type: ignore
-from db_connection import DBconnection  # type: ignore
+from db_connection import DBConnection  # type: ignore
 from PIL import Image
 
-DB = DBconnection("Users_Data.db")
+DB = DBConnection("Data_Side/Users_Data.db")
+DB.execute("PRAGMA foreign_keys = ON;")
+
+with open(get_data_path("GYM_Queries.sql"), "r") as file:
+    sql_script = file.read()
+    DB.executescript(sql_script)
 
 # Open database connections
 
@@ -31,7 +36,7 @@ class Main_Window(ctk.CTk):
         self.configure(fg_color="#2B2B2B")
         
         self.First_Interface_Frame = ctk.CTkFrame(self, width=800, height=600)
-        self.Show_Page(self.First_Interface_Frame)
+        self.Show_Main()
         self.Create_First_InterFace()
         # Start with main menu
         #self.protocol("WM_DELETE_WINDOW", self.cleanup_exit)
@@ -70,11 +75,11 @@ class Main_Window(ctk.CTk):
         Feedback_Btn.bind("<Enter>", lambda e: Feedback_Btn.configure(cursor="hand2"))
 
         # Back button for returning from Sign/Login/Report to main interface
-        self.Create_back_btn(self.Show_Report, self.First_Interface_Frame, 20, 511)
-        self.Create_back_btn(self.Show_Login, self.First_Interface_Frame, 20, 511)
-        self.Create_back_btn(self.Show_Sign, self.First_Interface_Frame, 20, 511)
+        self.Create_back_btn(self.First_Interface_Frame, self.Show_Report, 20, 511)
+        self.Create_back_btn(self.First_Interface_Frame, self.Show_Login, 20, 511)
+        self.Create_back_btn(self.First_Interface_Frame, self.Show_Sign, 20, 511)
 
-    def Create_back_btn(self, go_back_func, frame, x, y):
+    def Create_back_btn(self, frame, go_back_func, x, y):
         back_btn = ctk.CTkButton(frame, width=127, height=37, text="Back ⬅",
                                  **Styles.button_styles["Small"], command=go_back_func)
         back_btn.place(x=x, y=y)

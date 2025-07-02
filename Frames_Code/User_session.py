@@ -4,10 +4,10 @@ class user_session:
     def __init__(self, ID, name, age, weight, height, Activity, Image=None):
         self.ID = ID
         self.name = name
-        self.age = age
+        self.Activity = Activity
         self.weight = weight
         self.height = height
-        self.Activity = Activity
+        self.age = age
         self.Image = Image
 
 def save_session(session):

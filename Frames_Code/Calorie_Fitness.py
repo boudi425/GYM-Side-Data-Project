@@ -2,7 +2,7 @@ import os
 import sys
 from path_setup import get_data_path, add_frames_path
 add_frames_path("Data_Side")
-from db_connection import DBconnection # type: ignore
+from db_connection import DBConnection # type: ignore
 import customtkinter as ctk
 import sqlite3
 import Styles
@@ -12,7 +12,11 @@ from PIL import Image
 from User_session import load_session
 #Importing the most needed Classes!
 #Starting the part 2 from the project 
-DB = DBconnection("User_Data.db")
+DB = DBConnection("Data_Side/Users_Data.db")
+DB.execute("PRAGMA foreign_keys = ON;")
+with open(get_data_path("GYM_Queries.sql"), "r") as file:
+    sql_script = file.read()
+    DB.executescript(sql_script)
 
 class Program_setUp(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
@@ -32,10 +36,10 @@ class Program_setUp(ctk.CTkFrame):
     def Submit(self):
         #Checking if everything is nicely here!
         valid = True
-        
-        if not Side_Functions.check_empty(self.target_weight, self.Submit_Button_warning, "⚠ Must Enter A Number"):
+
+        if not Side_Functions.check_empty(self.Diet_Target_Entry, self.Submit_Button_warning, "⚠ Must Enter A Number"):
             valid = False
-        elif self.target_weight.get() < 0:
+        elif int(self.Diet_Target_Entry.get()) < 0:
             valid = False
             self.Submit_Button_warning.configure(text="⚠ Negative Numbers \n aren't allowed.")
         if valid:
@@ -198,10 +202,10 @@ class Program_setUp(ctk.CTkFrame):
     def Create_Details_Frame(self):
         #Creating the Details Frame containing everything needed to get the needed Data!. 
         #After this should be the MainMenu!
-        bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Black GYM Background.jpeg"), size=(1000, 700))
+        #bkg_Image = ctk.CTkImage(dark_image=Image.open("Window_Images/Black GYM Background.jpeg"), size=(1000, 700))
         
-        bg_label = ctk.CTkLabel(self, image=bkg_Image, text="", fg_color="transparent")
-        bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
+        #bg_label = ctk.CTkLabel(self, image=bkg_Image, text="")
+        #bg_label.place(relx=0, rely=0, relwidth=1, relheight=1)
         
         Title_Label = ctk.CTkLabel(self, text="Give us more information \nso we can serve you better!", 
                                    **Styles.label_styles["subtitle2"])
@@ -250,9 +254,9 @@ class Program_setUp(ctk.CTkFrame):
         Diet_target_Label = ctk.CTkLabel(self, text="What is your target weight?", **Styles.label_styles["Question"])
         Diet_target_Label.place(x=50, y=360)
         
-        Diet_Target_Entry = ctk.CTkEntry(self, textvariable=self.target_weight, **Styles.entry_styles["default"], 
+        self.Diet_Target_Entry = ctk.CTkEntry(self, textvariable=self.target_weight, **Styles.entry_styles["default"], 
                                         width=128, height=50)
-        Diet_Target_Entry.place(x=182, y=410)
+        self.Diet_Target_Entry.place(x=182, y=410)
         
         Training_Days_Label = ctk.CTkLabel(self, text="How Many Days can you train?: ", **Styles.label_styles["Question"])
         Training_Days_Label.place(x=31, y=481)

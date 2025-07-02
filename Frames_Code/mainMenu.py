@@ -12,71 +12,88 @@ import json
 import datetime
 from path_setup import get_data_path, add_frames_path
 add_frames_path("Data_Side")
-from db_connection import DBconnection #type: ignore
+from db_connection import DBConnection #type: ignore
+
 mainMenu_Window = ctk.CTk()
 mainMenu_Window.geometry("1000x600")
-mainMenu_Window.title("Dashboard")
+
 in_frame = ctk.CTkFrame(mainMenu_Window, width=768, height=520, border_color="white", border_width=2)
 in_frame.place(x=220, y=70)
-DB = DBconnection("Users_Data.db")
+DB = DBConnection("Data_Side/Users_Data.db")
+DB.execute("PRAGMA foreign_keys = ON;")
+with open(get_data_path("GYM_Queries.sql"), "r") as file:
+    sql_script = file.read()
+    DB.executescript(sql_script)
 
-class Dashboard:
+class Dashboard(ctk.CTk):
     def __init__(self):
-        tabView.create_TabView()
-        sideBar.Create_sidebar_Frame()
-        mainMenu_Window.mainloop()
+        super().__init__()
+        # Main window setup
+        self.geometry("1000x600")
+        self.title("Main Menu")
+
+        # Initialize tab and sidebar frames
+        self.tabView = tabView(self)
+        self.sideBar = sideBar(self)
+
+        # Build UI
+        self.tabView.create_TabView()
+        self.sideBar.Create_sidebar_Frame()
+
+    def run(self):
+        self.mainloop()
+
+
 class tabView(ctk.CTkFrame):
     def __init__(self, master):
-        super().__init__()
-        self.Data_load = us.load_session()
-        self.allTab_buttons = {}
-    
-    def Error_Popup_Window(self, Label_Text, Button_Text):
-        root = ctk.CTkToplevel()
-        root.geometry("500x150")
-        root.title("Error")
-        ctk.CTkLabel(root, text=Label_Text, **Styles.label_styles["Menu_Labels2"]).pack()
-        ctk.CTkButton(root, text=Button_Text, **Styles.button_styles["Small"], command=root.destroy).pack(pady=10)
-        root.attributes("-topmost", True)
-        
-    def create_TabView(self):
-        
-        self.Tab_Btn = {
-                    "Profile": {
-                        "Icon_path_Active": ctk.CTkImage(dark_image=Image.open("Window_Images/Active_Pr.png"), size=(28, 28)),
-                        "Icon_path": ctk.CTkImage(dark_image=Image.open("Window_Images/Default_Pr.png"), size=(28, 28)),
-                        "style": "First",
-                        "command": lambda: self.Open_Profile(),
-                        "Default_color": "#FFAA4D",
-                        "Active_color": "#C1733B"  
-                    },
-                    "Settings": {
-                        "Icon_path_Active": ctk.CTkImage(dark_image=Image.open("Window_Images/Active_Sett.png"), size=(28, 28)),
-                        "Icon_path": ctk.CTkImage(dark_image=Image.open("Window_Images/Default_Sett.png"), size=(28, 28)),
-                        "style": "Second",
-                        "command": lambda: self.Open_Settings(),
-                        "Default_color": "#4A8AE8",
-                        "Active_color": "#2F69B8" 
-                    },
-                    "Logout": {
-                        "Icon_path_Active": ctk.CTkImage(dark_image=Image.open("Window_Images/logout.png"), size=(28, 28)),
-                        "Icon_path": ctk.CTkImage(dark_image=Image.open("Window_Images/Default_logout.png"), size=(28, 28)),
-                        "style": "Danger!",
-                        "command": lambda: self.Check_if_sure(),
-                        "Default_color": "#CF0808",
-                        "Active_color": "#C70000" 
-                    }
-                }
+        super().__init__(master)
+        self.place(x=500, y=20)
 
-        for i, (key, item) in enumerate(self.Tab_Btn.items()):
-                b = ctk.CTkButton(self, text=f" {key}", width=150, height=50,
-                            image=item["Icon_path"],
-                            **Styles.button_styles[item["style"]],
-                            compound="left",
-                            command=item["command"])
-                b.place(x=500 + i*170, y=11)
-                b.bind("<Enter>", b.configure(cursor="hand2"))
-                self.allTab_buttons[key] = b
+        # Load user session data
+        self.Data_load = us.load_session()
+
+        # Prepare storage for buttons and images
+        self.allTab_buttons = {}
+        self.image_refs = {}
+
+        # Define button configs
+        self.Tab_Btn = {
+            "Profile": {"style": "First", "command": self.Open_Profile},
+            "Settings": {"style": "Second", "command": self.Open_Settings},
+            "Logout": {"style": "Danger!", "command": self.Check_if_sure}
+        }
+
+        # Load icons after frame is initialized and store references
+        self.Image_Sources = {}
+        for key in self.Tab_Btn:
+            default_img = ctk.CTkImage(
+                dark_image=Image.open(f"Window_Images/Default_{key[:3]}.png"), size=(28, 28)
+            )
+            active_img = ctk.CTkImage(
+                dark_image=Image.open(f"Window_Images/Active_{key[:3]}.png"), size=(28, 28)
+            )
+            self.Image_Sources[key] = {"Icon_path": default_img, "Icon_path_Active": active_img}
+            # keep strong references
+            self.image_refs[f"{key}_default"] = default_img
+            self.image_refs[f"{key}_active"] = active_img
+
+    def create_TabView(self):
+        # Create buttons using stored images
+        for i, (key, cfg) in enumerate(self.Tab_Btn.items()):
+            img = self.Image_Sources[key]["Icon_path"]
+            btn = ctk.CTkButton(
+                self,
+                text=f" {key}",
+                image=img,
+                compound="left",
+                command=cfg["command"],
+                **Styles.button_styles[cfg["style"]]
+            )
+            btn.place(x=0 + i * 170, y=0)
+            btn.bind("<Enter>", lambda e, b=btn: b.configure(cursor="hand2"))
+            self.allTab_buttons[key] = btn
+
+
     def Open_Profile(self, section="Profile"):
         Current_Email = DB.fetchone("SELECT Email FROM Users WHERE ID = ?", (self.Data_load["ID"],))
         Email = ctk.StringVar()
@@ -213,7 +230,7 @@ class tabView(ctk.CTkFrame):
         Update_Image_btn.grid(row=3, column=1, pady=30)
         
         Save_btn = ctk.CTkButton(Pr_Top, text="Save",width=50, height=25, **Styles.button_styles["Second"],
-                                command=lambda: Save)
+                                command=Save)
         Save_btn.grid(row=4, column=1)
     def switch_toTab(self, section):
         for key, item in self.allTab_buttons.items():
@@ -387,7 +404,7 @@ class tabView(ctk.CTkFrame):
 class sideBar(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
-        self.Data_load = us.load_session()()
+        self.Data_load = us.load_session()
         self.allSidebar_buttons = {}
         
     def switch_frame(self, frame): 
@@ -454,7 +471,7 @@ class sideBar(ctk.CTkFrame):
                 btn.place(x=24, y=528)
             else:
                 btn.place(x=24, y=110 + i*80)
-            btn.bind("<Enter>", btn.configure(cursor="hand2"))
+            btn.bind("<Enter>", lambda e, btn=btn: btn.configure(cursor="hand2"))
             self.allSidebar_buttons[key] = btn
             
     def switch_toSidebar(self, section):
@@ -705,28 +722,28 @@ class Calories_Section:
                 Top_Meal_Details = ctk.CTkToplevel()
                 Top_Meal_Details.geometry("600x600")
                 Top_Meal_Details.title(f"{section} Details.")
-                ctk.CTkLabel(Top_Meal_Details, text=f"Data: {Details["Date"]}", **Styles.label_styles["Menu_Labels"]
+                ctk.CTkLabel(Top_Meal_Details, text=f"Data: {Details['Date']}", **Styles.label_styles["Menu_Labels"]
                             ).grid(row=0, column=0, pady=5)
-                ctk.CTkLabel(Top_Meal_Details, text=f"Type of Meal: {Details["mealType"]}", **Styles.label_styles["Menu_Labels"]
+                ctk.CTkLabel(Top_Meal_Details, text=f"Type of Meal: {Details['mealType']}", **Styles.label_styles["Menu_Labels"]
                             ).grid(row=1, column=0, pady=5)
                 for i, food in enumerate(Details["foodNames"]):
                     ctk.CTkLabel(Top_Meal_Details, text=f"Meal: {food}", **Styles.label_styles["Menu_Labels"]
                                 ).grid(row=2 + i, column=0, pady=3)
-                ctk.CTkLabel(Top_Meal_Details, text=f"Total Kcal: {Details["Kcal"]}", **Styles.label_styles["Menu_Labels"]
+                ctk.CTkLabel(Top_Meal_Details, text=f"Total Kcal: {Details['Kcal']}", **Styles.label_styles["Menu_Labels"]
                             ).place(x=300, y=500)
-                ctk.CTkButton(Top_Meal_Details, text="Close", **Styles.button_styles["Quick"], command=Top_Meal_Details.destroy)
+                ctk.CTkButton(Top_Meal_Details, text="Close", **Styles.button_styles["Quick"], command=Top_Meal_Details.destroy).place(x=400, y=550)
                 
                 Diagram_Data = pd.read_sql_query(
                 "SELECT Proteins, Carbs, Fats FROM Meal WHERE Section = ? AND User_id = ?",
-                con=DB,
+                con=DB.connection if hasattr(DB, 'connection') else DB,
                 params=(section, self.Data_load["ID"])
                 )
                 Totals = Diagram_Data.sum()
-                Labels = ["Protein", "Carbs", "Fats"]
-                values = [Totals["Protein"], Totals["Carbs"], Totals["Fats"]]
+                Labels = ["Proteins", "Carbs", "Fats"]
+                values = [Totals["Proteins"], Totals["Carbs"], Totals["Fats"]]
                 
+                import matplotlib.pyplot as plt
                 fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
-                ax.figure(figsize=(5, 5))
                 ax.pie(values, labels=Labels, autopct="%1.1f%%", startangle=90)
                 ax.set_title(f"Macro Split for section {section}")
                 ax.axis("equal")
@@ -747,7 +764,7 @@ class Calories_Section:
         self.Total_Carbs = ctk.IntVar(value=0)
         self.Total_Fats = ctk.IntVar(value=0)
         all_Meals = ctk.StringVar(value="No Meals Added")
-        for widget in self.Cal_Frame:
+        for widget in self.Cal_Frame.winfo_children():
             if not isinstance(widget, ctk.CTkCanvas):
                 widget.destroy()
                 
@@ -762,7 +779,8 @@ class Calories_Section:
         
         ctk.CTkLabel(self.Now_Made_Frame, text=f"Total Kcal: {self.Total_Kcal.get()}", **Styles.label_styles["Menu_Labels"]
                     ).grid(row=0, column=1, pady=3)
-        all_Meals.set(DB.fetchall("SELECT Meal FROM Meals WHERE User_id =  ? AND Section = ?", (self.Data_load["ID"], section)).fetchall())
+        meals_result = DB.fetchall("SELECT Meal FROM Meals WHERE User_id =  ? AND Section = ?", (self.Data_load["ID"], section))
+        all_Meals.set(meals_result if meals_result else "No Meals Added")
         ctk.CTkLabel(self.Now_Made_Frame, text=all_Meals.get(), **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
         
         ctk.CTkButton(self.Cal_Frame, text="Add", width=110, height=40, **Styles.button_styles["Quick"],
@@ -775,9 +793,9 @@ class Calories_Section:
         rem_btn = ctk.CTkButton(self.Cal_Frame, text="Remove", width=110, height=40, **Styles.button_styles["Quick"], state="disabled",
                     command=removeMealTopLoad)
         rem_btn.grid(row=1, column=3, pady=10)
-        
-        if all_Meals.get() != "No Meals Added" or all_Meals.get() != None:
+        if all_Meals.get() != "No Meals Added" and all_Meals.get() is not None:
             edit_btn.configure(state="normal")
+            rem_btn.configure(state="normal")
             rem_btn.configure(state="normal")
             
         def addMeal():
@@ -789,9 +807,8 @@ class Calories_Section:
                         width=250, height=39,
                         **Styles.entry_styles["Query"]
                         ).grid(row=0, column=0, pady=5)
-            
-            ctk.CTkButton(self.Cal_Frame, width=30, height=30, image="", compound="", **Styles.label_styles["Quick"],
-                        command=lambda: get_search(Search_Results))
+            ctk.CTkButton(self.Cal_Frame, width=30, height=30, image=None, compound=None, **Styles.button_styles["Quick"],
+                        command=lambda: get_search(Search_Results)).grid(row=0, column=1, pady=5)
             
             Query_Frame_Shown = ctk.CTkFrame(self.Cal_Frame, width=300, height=385).grid(row=1, column=0, pady=10)
             
@@ -824,23 +841,23 @@ class Calories_Section:
             editTop.geometry("600x600")
             editTop.title(f"{section} Edit")
             ctk.CTkLabel(editTop, text=all_Meals.get(), **Styles.label_styles["Menu_Labels"]).pack(pady=5)
-            
             Diagram_Data = pd.read_sql_query(
             "SELECT Proteins, Carbs, Fats FROM Meal WHERE Section = ? AND User_id = ?",
-            con=DB,
+            con=DB.connection if hasattr(DB, 'connection') else DB,
             params=(section, self.Data_load["ID"])
             )
             Totals = Diagram_Data.sum()
-            Labels = ["Protein", "Carbs", "Fats"]
-            values = [Totals["Protein"], Totals["Carbs"], Totals["Fats"]]
+            Labels = ["Proteins", "Carbs", "Fats"]
+            values = [Totals["Proteins"], Totals["Carbs"], Totals["Fats"]]
             
+            import matplotlib.pyplot as plt
             fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
-            ax.figure(figsize=(5, 5))
             ax.pie(values, labels=Labels, autopct="%1.1f%%", startangle=90)
             ax.set_title(f"Macro Split for section {section}")
             ax.axis("equal")
             
             chart = FigureCanvasTkAgg(fig, master=editTop)
+            chart.get_tk_widget().pack(pady=5,  padx=(0 , 10))
             chart.get_tk_widget().pack(pady=5,  padx=(0 , 10))
             ctk.CTkLabel(editTop, text="Still Working on editing the meal itself, For now you can try to add and remove",
                         **Styles.label_styles["Menu_Labels"]).pack()
@@ -862,15 +879,15 @@ class Calories_Section:
         
         grams = ctk.IntVar(value=100)
         entry = ctk.CTkEntry(chosen_foodTop, textvariable=grams, **Styles.entry_styles["Query"])
-        
         entry._entry.configure(validate="key", validatecommand=(vcmd, "%S"))
         entry.grid(row=5, column=1, pady=3)
         
-        allResults = Side_Functions.Get_Malnutrition(foodName, grams)
+        allResults = Side_Functions.Get_Malnutrition(foodName, grams.get())
 
         Kcal.set(allResults["Calories"])
         Proteins.set(allResults["Protein"])
         Carbs.set(allResults["Carbs"])
+        Fats.set(allResults["Fats"])
         Fats.set(allResults["Fats"])
         
         ctk.CTkLabel(chosen_foodTop, text=f"Calories: {Kcal.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
@@ -880,31 +897,30 @@ class Calories_Section:
         ctk.CTkLabel(chosen_foodTop, text=f"Carbs: {Carbs.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=3, column=0, pady=5)
         
         ctk.CTkLabel(chosen_foodTop, text=f"Fats: {Fats.get()}", **Styles.label_styles["Menu_Labels"]).grid(row=4, column=0, pady=5)
-        
-        ctk.CTkButton(chosen_foodTop, text="Save", **Styles.button_styles["Quick"], command=submit_entry).grid(row=6, column=1)
+        ctk.CTkButton(chosen_foodTop, text="Save", **Styles.button_styles["Quick"], command=lambda: submit_entry()).grid(row=6, column=1)
         
         def submit_entry():
-            if grams == 0:
+            if grams.get() == 0:
                 self.Error_Popup_Window("Enter a number!", "Close")
-            elif grams < 0:
+            elif grams.get() < 0:
                 self.Error_Popup_Window("Enter a positive number!", "Close")
             else:
-                Final = us.UserMealData(datetime.date.today(), section, foodName, grams, Kcal.get())
+                Final = us.UserMealData(datetime.date.today(), section, foodName, grams.get(), Kcal.get())
                 us.saveDataMeal(self.Data_load["ID"], section, *Final)
                 self.Total_Kcal.set(Kcal.get())
                 self.Total_Protein.set(Proteins.get())
                 self.Total_Carbs.set(Carbs.get())
                 self.Total_Fats.set(Fats.get())
-                DB.execute("INSERT INTO Meals(User_id, Date, Section, Proteins, Carbs, Fats, Kcal) VALUES(?, ?, ?, ?, ?, ?, ?)",(
+                DB.execute("INSERT INTO Meals(User_id, Date, Section, Meal, Proteins, Carbs, Fats, Kcal) VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                     self.Data_load["ID"],
                     datetime.date.today(),
                     section,
                     foodName,
-                    self.Total_Protein,
-                    self.Total_Carbs,
-                    self.Total_Fats,
-                    self.Total_Kcal
-                ))
+                    self.Total_Protein.get(),
+                    self.Total_Carbs.get(),
+                    self.Total_Fats.get(),
+                    self.Total_Kcal.get()
+                )
 class Exercises_Section:
     def __init__(self):
         pass
