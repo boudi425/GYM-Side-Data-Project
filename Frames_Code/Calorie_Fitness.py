@@ -1,6 +1,8 @@
 import os
 import sys
-from path_setup import get_data_path
+from path_setup import get_data_path, add_frames_path
+add_frames_path("Data_Side")
+from db_connection import DBconnection # type: ignore
 import customtkinter as ctk
 import sqlite3
 import Styles
@@ -10,10 +12,7 @@ from PIL import Image
 from User_session import load_session
 #Importing the most needed Classes!
 #Starting the part 2 from the project 
-Con = sqlite3.connect(get_data_path("Users_Data.db"))
-Cur = Con.cursor()
-with open("Data_Side/GYM&User_DATA.sql", "r") as Table_Query:
-    Cur.executescript(Table_Query.read())
+DB = DBconnection("User_Data.db")
 
 class Program_setUp(ctk.CTkFrame):
     def __init__(self, master, switch_screen=None):
@@ -46,7 +45,7 @@ class Program_setUp(ctk.CTkFrame):
         #Insert The data gotten from the user!
         self.Sure_Windows.destroy()
         Data_load = load_session()
-        Cur.execute("""INSERT INTO Program_Users(
+        DB.execute("""INSERT INTO Program_Users(
             User_id,
             Gender,
             Diet_Goal,
@@ -58,7 +57,6 @@ class Program_setUp(ctk.CTkFrame):
             ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)""", 
             (Data_load["ID"], self.gender.get(), self.Diet_Goal.get(), self.target_weight.get(), self.Training_Days_Ava.get(),
             self.Days_Off_Activity.get(), self.intensity_Level.get(), self.Experience_Level.get()))
-        Con.commit()
         #This one is a bit tricky but let me explain we are going to get the program choice which is True or False
         #Then depending on this it will give us the Option of doing the user program or not but because it was hard to put this function
         #In the main function i made it alone, I may fixed it later but all we need to know that this function returns True or False depending in what he chose
@@ -67,18 +65,17 @@ class Program_setUp(ctk.CTkFrame):
         Data = self.Program_Calc()
         #This Function returns every needed data , we will explain how we get it down!
         #return Pr_BMR, standard, Final_result, Program
-        Cur.execute("INSERT INTO Program_Data(User_id, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
+        DB.execute("INSERT INTO Program_Data(User_id, BMR, Calories, TDEE, Program_Choice) VALUES(?, ?, ?, ?, ?)",
                     (Data_load["ID"], *Data, choice))    
-        Con.commit()
-        
-        Cur.execute("PRAGMA table_info(Users);")
-        columns = [column[1] for column in Cur.fetchall()]
-        
+
+
+        result = DB.fetchall("PRAGMA table_info(Users);")
+        columns = [column[1] for column in result]
+
         if "Full_Logged" not in columns:
-            Cur.execute("ALTER TABLE Users ADD COLUMN Full Logged TEXT;")
-            Con.commit()
-        Cur.execute("UPDATE Users Full Logged = ? WHERE ID = ?", (True ,Data_load["ID"]))
-        
+            DB.execute("ALTER TABLE Users ADD COLUMN Full_Logged TEXT;")
+        DB.execute("UPDATE Users SET Full_Logged = ? WHERE ID = ?", (True ,Data_load["ID"]))
+
     def switch_page(self):
         #Not using the try/expect stuff because this function doesn't get activated expect when it is needed! 
         self.Program_Choice_Window.destroy()
@@ -159,7 +156,7 @@ class Program_setUp(ctk.CTkFrame):
     def Program_Calc(self):
         #This is a huge function that has three functions working to get the last result!
         Data_Load = load_session()
-        Program_Data_load = Cur.execute("SELECT Gender, Diet_Goal, Target_Weight, Training_Days, Not_Active_Days, Intensity_Level, Experience FROM Program_Users WHERE Name = ?", (Data_Load["name"],)).fetchone()
+        Program_Data_load = DB.fetchone("SELECT Gender, Diet_Goal, Target_Weight, Training_Days, Not_Active_Days, Intensity_Level, Experience FROM Program_Users WHERE Name = ?", (Data_Load["name"],))
         Activity_Num = self.Get_Activity()
         def BMR_Calc():
             #BMR Formula depending on the Gender , a certain formula is applied and restored!

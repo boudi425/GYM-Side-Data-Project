@@ -10,14 +10,16 @@ import matplotlib as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import json
 import datetime
-from path_setup import get_data_path
-
-Conn, Cur = Side_Functions.openData(get_data_path("Users_Data.db"))
+from path_setup import get_data_path, add_frames_path
+add_frames_path("Data_Side")
+from db_connection import DBconnection #type: ignore
 mainMenu_Window = ctk.CTk()
 mainMenu_Window.geometry("1000x600")
 mainMenu_Window.title("Dashboard")
 in_frame = ctk.CTkFrame(mainMenu_Window, width=768, height=520, border_color="white", border_width=2)
 in_frame.place(x=220, y=70)
+DB = DBconnection("Users_Data.db")
+
 class Dashboard:
     def __init__(self):
         tabView.create_TabView()
@@ -76,7 +78,7 @@ class tabView(ctk.CTkFrame):
                 b.bind("<Enter>", b.configure(cursor="hand2"))
                 self.allTab_buttons[key] = b
     def Open_Profile(self, section="Profile"):
-        Current_Email = Cur.execute("SELECT Email FROM Users WHERE ID = ?", (self.Data_load["ID"],)).fetchone()
+        Current_Email = DB.fetchone("SELECT Email FROM Users WHERE ID = ?", (self.Data_load["ID"],))
         Email = ctk.StringVar()
         Name = ctk.StringVar()
         self.switch_toTab(section)
@@ -114,7 +116,7 @@ class tabView(ctk.CTkFrame):
                         command=Submit_Email).grid(row=2, column=1, pady=10)
                 
         def Change_Name():
-            Names = Cur.execute("SELECT Name FROM Users").fetchall()
+            Names = DB.fetchall("SELECT Name FROM Users")
             Name_Top = ctk.CTkToplevel()
             Name_Top.geometry("400x200")
             Name_Top.title("Changing Name")
@@ -151,9 +153,8 @@ class tabView(ctk.CTkFrame):
                 
                 
         def Save():
-            Cur.execute("UPDATE Users SET Name = ?, Email = ? WHERE ID = ?",
+            DB.execute("UPDATE Users SET Name = ?, Email = ? WHERE ID = ?",
                         (Name.get(), Email.get(), self.Data_load["ID"]))
-            Conn.commit()
             self.Data_load["name"] = Name.get()
         def choose_image():
             file_path = filedialog.askopenfilename(
@@ -190,7 +191,7 @@ class tabView(ctk.CTkFrame):
                                     command=Change_Name)
         username_btn.grid(row=0, column=1)
         
-        Current_Email = Side_Functions.mask_email(Cur.execute("SELECT Email FROM Users WHERE ID = ?",
+        Current_Email = Side_Functions.mask_email(DB.execute("SELECT Email FROM Users WHERE ID = ?",
                                         (self.Data_load["ID"],))
                                         .fetchone()[0])
         
@@ -396,9 +397,9 @@ class sideBar(ctk.CTkFrame):
         frame.place(relx=0, rely=0, relwidth=1, relheight=1)
         
     def Create_sidebar_Frame(self):
-        Calories = Cur.execute("SELECT Calories FROM Program_Data WHERE User_id = ?", (self.Data_load["ID"],)).fetchone()[0]
-        Diet_Goal = Cur.execute("SELECT Diet_Goal FROM Program_Users WHERE User_id = ?", (self.Data_load["ID"])).fetchone()[0]
-        Actual_Burn_cal = Cur.execute("SELECT TDEE FROM Program_Users WHERE User_id = ?", (self.Data_load["ID"])).fetchone()[0]
+        Calories = DB.fetchone("SELECT Calories FROM Program_Data WHERE User_id = ?", (self.Data_load["ID"],))[0]
+        Diet_Goal = DB.fetchone("SELECT Diet_Goal FROM Program_Users WHERE User_id = ?", (self.Data_load["ID"],))[0]
+        Actual_Burn_cal = DB.fetchone("SELECT TDEE FROM Program_Users WHERE User_id = ?", (self.Data_load["ID"],))[0]
         Main_Calories = json.loads(Calories)
         self.sideBar_Btn = {
                 "My Plan": {
@@ -494,11 +495,11 @@ class Calories_Section:
             chosen_planDataLoad(check_results["Plan"], check_results["targetGoal"])
         else:
             return None
-        
-        notPlan = Diet_Goal = Cur.execute(
+
+        notPlan = Diet_Goal = DB.fetchone(
             "SELECT Diet_Goal FROM Program_Users WHERE User_id = ?",
             (self.Data_load["ID"],)
-        ).fetchone()[0]
+        )[0]
         ctk.CTkButton(
             self.Cal_Frame,
             text="Make my Own Plan",
@@ -506,18 +507,18 @@ class Calories_Section:
             command=lambda: chosen_planDataLoad(Plan="Plan1", typeGoal=notPlan)
         ).grid(row=0, column=0, sticky="nw")
 
-        Calories = Cur.execute(
+        Calories = DB.fetchone(
             "SELECT Calories FROM Program_Data WHERE User_id = ?",
             (self.Data_load["ID"],)
-        ).fetchone()[0]
-        Diet_Goal = Cur.execute(
+        )[0]
+        Diet_Goal = DB.fetchone(
             "SELECT Diet_Goal FROM Program_Users WHERE User_id = ?",
             (self.Data_load["ID"],)
-        ).fetchone()[0]
-        Actual_Burn_cal = Cur.execute(
+        )[0]
+        Actual_Burn_cal = DB.fetchone(
             "SELECT TDEE FROM Program_Users WHERE User_id = ?",
             (self.Data_load["ID"],)
-        ).fetchone()[0]
+        )[0]
         Main_Calories = json.loads(Calories)
 
         for i, Needed_Calories in enumerate(Main_Calories):
@@ -717,7 +718,7 @@ class Calories_Section:
                 
                 Diagram_Data = pd.read_sql_query(
                 "SELECT Proteins, Carbs, Fats FROM Meal WHERE Section = ? AND User_id = ?",
-                con=Conn,
+                con=DB,
                 params=(section, self.Data_load["ID"])
                 )
                 Totals = Diagram_Data.sum()
@@ -761,7 +762,7 @@ class Calories_Section:
         
         ctk.CTkLabel(self.Now_Made_Frame, text=f"Total Kcal: {self.Total_Kcal.get()}", **Styles.label_styles["Menu_Labels"]
                     ).grid(row=0, column=1, pady=3)
-        all_Meals.set(Cur.execute("SELECT Meal FROM Meals WHERE User_id =  ? AND Section = ?", (self.Data_load["ID"], section)).fetchall())
+        all_Meals.set(DB.fetchall("SELECT Meal FROM Meals WHERE User_id =  ? AND Section = ?", (self.Data_load["ID"], section)).fetchall())
         ctk.CTkLabel(self.Now_Made_Frame, text=all_Meals.get(), **Styles.label_styles["Menu_Labels"]).grid(row=1, column=0, pady=5)
         
         ctk.CTkButton(self.Cal_Frame, text="Add", width=110, height=40, **Styles.button_styles["Quick"],
@@ -807,8 +808,7 @@ class Calories_Section:
                     
         def removeMealTopLoad():
             def deleteTheMealData(meal_section):
-                Cur.execute("DELETE FROM Meals WHERE User_id = ? AND Section = ?", (self.Data_load["ID"], meal_section))
-                Conn.commit()
+                DB.execute("DELETE FROM Meals WHERE User_id = ? AND Section = ?", (self.Data_load["ID"], meal_section))
             warnTop = ctk.CTkToplevel()
             warnTop.title("Removing meal")
             warnTop.geometry("500x5000")
@@ -827,7 +827,7 @@ class Calories_Section:
             
             Diagram_Data = pd.read_sql_query(
             "SELECT Proteins, Carbs, Fats FROM Meal WHERE Section = ? AND User_id = ?",
-            con=Conn,
+            con=DB,
             params=(section, self.Data_load["ID"])
             )
             Totals = Diagram_Data.sum()
@@ -895,7 +895,7 @@ class Calories_Section:
                 self.Total_Protein.set(Proteins.get())
                 self.Total_Carbs.set(Carbs.get())
                 self.Total_Fats.set(Fats.get())
-                Cur.execute("INSERT INTO Meals(User_id, Date, Section, Proteins, Carbs, Fats, Kcal) VALUES(?, ?, ?, ?, ?, ?, ?)",(
+                DB.execute("INSERT INTO Meals(User_id, Date, Section, Proteins, Carbs, Fats, Kcal) VALUES(?, ?, ?, ?, ?, ?, ?)",(
                     self.Data_load["ID"],
                     datetime.date.today(),
                     section,
@@ -905,7 +905,6 @@ class Calories_Section:
                     self.Total_Fats,
                     self.Total_Kcal
                 ))
-                Conn.commit()
 class Exercises_Section:
     def __init__(self):
         pass

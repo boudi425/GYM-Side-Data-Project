@@ -17,7 +17,7 @@ from PIL import Image
 DB = DBconnection("Users_Data.db")
 Con_Feed_Repo, Cur_Feed_Repo = Side_Functions.openData(get_data_path("Reports&Feedbacks.db"), "Data_Side/Reports&Feedbacks.sql")
 #First: Sign up Interface/Class
-    
+
 # // Main Window...
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
